@@ -4,11 +4,11 @@
   "phase_1": {
     "backend_auth_system": {
       "description": "JWT auth, hotel registration, API key generation + SHA-256 hashing",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
-      "released_at": null,
+      "status": "released",
+      "agent_id": "antigravity-lead-backend",
+      "branch": "phase1/auth-system",
+      "claimed_at": "2026-05-13T20:27:00Z",
+      "released_at": "2026-05-13T20:58:00Z",
       "plan_ref": "Module 2 § 2.3 — KYC & API Key Architecture"
     },
     "backend_referral_fanout": {
@@ -40,11 +40,11 @@
     },
     "backend_database_schema": {
       "description": "Alembic migrations: platform schema, hotel private schemas, RLS policies, PostGIS",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
-      "released_at": null,
+      "status": "released",
+      "agent_id": "antigravity-lead-backend",
+      "branch": "phase1/database-schema",
+      "claimed_at": "2026-05-13T20:27:00Z",
+      "released_at": "2026-05-13T20:58:00Z",
       "plan_ref": "Module 1 § 1.2 — PostgreSQL Schema"
     },
     "backend_celery_workers": {
