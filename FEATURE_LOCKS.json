@@ -15,7 +15,7 @@
       "description": "POST /v1/referrals, asyncio fanout, Redis cache, timeout handling",
       "status": "claimed",
       "agent_id": "abrsh",
-      "branch": "Abrsh",
+      "branch": "phase1/referral-fanout",
       "claimed_at": "2026-05-14T01:30:00Z",
       "released_at": null,
       "plan_ref": "Module 1 § 1.1 — FastAPI Fanout"
