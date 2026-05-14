@@ -70,6 +70,7 @@ lodge-link/
 - Celery queue (exponential backoff) for all outbound webhook notifications.
 - AfricasTalking SMS dispatched for EVERY referral event (not just webhook failures).
 - HMAC offline handshake code must validate **without any API call** (validated in Service Worker / local).
+- **Handshake and Referral Verification logic is finalized. Use the HandshakeService for any guest validation tasks; do not re-implement HMAC signing.**
 
 ### Frontend (Next.js PWA)
 - Emergency Referral Mode must be reachable in 3 taps maximum.

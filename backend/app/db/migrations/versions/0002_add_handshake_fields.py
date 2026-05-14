@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column('referrals', sa.Column('handshake_expires_at', sa.String(), nullable=True), schema='platform')
+    op.add_column('referrals', sa.Column('handshake_expires_at', sa.DateTime(timezone=True), nullable=True), schema='platform')
     op.add_column('referrals', sa.Column('is_handshake_verified', sa.Boolean(), server_default='false', nullable=False), schema='platform')
 
 

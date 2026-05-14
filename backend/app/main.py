@@ -26,6 +26,7 @@ app.add_middleware(
 )
 
 from app.api.v1.availability import router as availability_router
+from app.api.v1.handshake import router as handshake_router
 
 @app.get("/health", tags=["System"])
 async def health_check():
@@ -35,4 +36,10 @@ app.include_router(
     availability_router,
     prefix="/v1/hotels",
     tags=["Availability"]
+)
+
+app.include_router(
+    handshake_router,
+    prefix="/v1/handshake",
+    tags=["Handshake"]
 )
