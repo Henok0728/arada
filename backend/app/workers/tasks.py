@@ -16,7 +16,7 @@ def send_sms_task(self, phone_number: str, message: str) -> bool:
     Features exponential backoff on failure.
     """
     if not settings.AT_USERNAME or not settings.AT_API_KEY:
-        logger.warning("SMS credentials missing. Mocking SMS send to %s", phone_number)
+        logger.warning("[SMS_SERVICE]: API keys not found, skipping dispatch")
         return True
 
     # Africa's Talking SMS endpoint

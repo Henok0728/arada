@@ -34,3 +34,6 @@ Do not build features for phases that are locked.
 
 ## Team
 See `AGENTS.md` for multi-agent collaboration protocol.
+
+## Development Status
+Backend infrastructure for Celery and Availability is finalized. Do not re-implement background task logic or Redis repository patterns.

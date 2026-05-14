@@ -351,8 +351,8 @@ def dispatch_referral_notification(self, hotel_id: str, referral_event_id: str):
 **Layer 3: The Offline Handshake Code (Zero-Internet Fallback)**
 This is the most important resilience feature for the Ethiopian context. When a guest is referred to Hotel B and arrives with no internet available, the physical handshake code (generated at referral creation and printed/SMS'd to the guest) serves as proof of referral. See Module 6 for full detail.
 
-**Layer 4: SMS as the Transport Layer**
-For dashboard-tier hotels in low-connectivity areas, the referral notification is also dispatched via SMS using a local Ethiopian SMS gateway (e.g., **AfricasTalking Ethiopia** or **Ethio Telecom SMS API**). This guarantees delivery even when data is unavailable.
+**Layer 4: SMS as the Transport Layer (Optional)**
+For dashboard-tier hotels in low-connectivity areas, the referral notification is also dispatched via SMS using a local Ethiopian SMS gateway (e.g., **AfricasTalking Ethiopia** or **Ethio Telecom SMS API**). This guarantees delivery even when data is unavailable. Note: SMS is a secondary feature that is disabled by default. It will degrade gracefully if API keys are not provided.
 
 ```python
 # services/notification.py
