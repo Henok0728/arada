@@ -92,7 +92,13 @@ async def register_hotel(
     user = await user_repo.create(user)
 
     # -----------------------------------------------------------------------
-    # 3. Generate API key — SANDBOX env, full MVP scopes
+    # 3. Bootstrap Private Tenant Schema (bookings, rate_configs)
+    # -----------------------------------------------------------------------
+    from app.services.tenant import bootstrap_tenant_schema
+    await bootstrap_tenant_schema(db, hotel.slug)
+
+    # -----------------------------------------------------------------------
+    # 4. Generate API key — SANDBOX env, full MVP scopes
     # -----------------------------------------------------------------------
     plaintext_key, key_hash, key_prefix = generate_api_key(ENV_DEV)
 
@@ -110,7 +116,7 @@ async def register_hotel(
     await db.refresh(api_key_record)
 
     # -----------------------------------------------------------------------
-    # 4. Issue JWT token pair so the user is immediately logged in
+    # 5. Issue JWT token pair so the user is immediately logged in
     # -----------------------------------------------------------------------
     tokens = create_token_pair(
         user_id=str(user.id),

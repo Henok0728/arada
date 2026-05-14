@@ -5,7 +5,9 @@ import logging
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.session import get_db_session
 from app.schemas.availability import AvailabilityUpdateRequest, HotelAvailabilityResponse
 from app.db.repositories.availability import AvailabilityRepository
 from app.core.config import settings
@@ -25,6 +27,51 @@ async def get_redis_client() -> Redis:
 
 def get_availability_repo(redis: Redis = Depends(get_redis_client)) -> AvailabilityRepository:
     return AvailabilityRepository(redis)
+
+
+@router.get(
+    "",
+    response_model=list[HotelAvailabilityResponse],
+    summary="Find nearby available hotels",
+    description=(
+        "Geospatially finds nearby hotels within a radius and returns their "
+        "current room availability from the Redis cache. "
+        "Hotels with NO cached availability are skipped."
+    ),
+)
+async def query_nearby_availability(
+    longitude: float,
+    latitude: float,
+    radius_metres: float = 5000.0,
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db_session),
+    redis: Redis = Depends(get_redis_client),
+) -> list[HotelAvailabilityResponse]:
+    from app.db.repositories.hotel import HotelRepository
+    from app.db.repositories.availability import AvailabilityRepository
+
+    hotel_repo = HotelRepository(db)
+    avail_repo = AvailabilityRepository(redis)
+
+    # 1. Geo-lookup (PostGIS)
+    nearby_hotels = await hotel_repo.find_nearby_active(
+        longitude=longitude,
+        latitude=latitude,
+        radius_metres=radius_metres,
+        limit=limit,
+    )
+
+    if not nearby_hotels:
+        return []
+
+    # 2. Bulk fetch availability from Redis
+    results = []
+    for hotel in nearby_hotels:
+        avail = await avail_repo.get_availability(hotel.id)
+        if avail:
+            results.append(avail)
+
+    return results
 
 
 @router.get(

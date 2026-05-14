@@ -255,3 +255,43 @@ async def decline_referral(
         message="Referral declined. Other hotels in the fan-out remain active.",
     )
 
+
+@router.get(
+    "/{referral_id}/handshake",
+    response_model=HandshakeResponse,
+    summary="Validate offline handshake code",
+    description=(
+        "Verifies a 6-character handshake code for a specific referral. "
+        "If valid, marks the referral as COMPLETED."
+    ),
+)
+async def validate_referral_handshake(
+    referral_id: UUID,
+    code: str,
+    db: AsyncSession = Depends(get_db_session),
+    redis: Redis = Depends(get_redis_client),
+):
+    from app.services import handshake as handshake_service
+    from app.schemas.handshake import HandshakeResponse
+
+    try:
+        is_valid = await handshake_service.verify_handshake(db, redis, referral_id, code)
+        if is_valid:
+            return HandshakeResponse(
+                success=True,
+                message="Handshake verified successfully. Referral marked as COMPLETED."
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid handshake code for this referral."
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
