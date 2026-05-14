@@ -1,11 +1,14 @@
+const withPWA = require('next-pwa')({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // PWA support will be added via next-pwa in Phase 1
   reactStrictMode: true,
-  i18n: {
-    locales: ['en', 'am'],   // English + Amharic
-    defaultLocale: 'en',
-  },
-}
+  // We handle i18n via react-i18next client-side as per current implementation
+};
 
-module.exports = nextConfig
+module.exports = withPWA(nextConfig);

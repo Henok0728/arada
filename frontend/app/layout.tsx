@@ -1,5 +1,6 @@
 import './globals.css';
 import I18nProvider from '../components/I18nProvider';
+import OfflineBanner from '../components/OfflineBanner';
 
 export const metadata = {
   title: 'Lodge-Link | Trusted Referral Network',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <OfflineBanner />
         <I18nProvider>
           {children}
         </I18nProvider>

@@ -94,11 +94,11 @@
     },
     "frontend_pwa_offline": {
       "description": "Service Worker setup, IndexedDB cache for 50 referrals, offline banner, local code validation",
-      "status": "claimed",
+      "status": "released",
       "agent_id": "antigravity-frontend",
-      "branch": "phase1/pwa-offline",
+      "branch": "feat/pwa-offline-integration",
       "claimed_at": "2026-05-15T00:52:00Z",
-      "released_at": null,
+      "released_at": "2026-05-15T01:05:00Z",
       "plan_ref": "Module 6 § 6.2 — Offline Handshake"
     },
     "infrastructure_docker": {
