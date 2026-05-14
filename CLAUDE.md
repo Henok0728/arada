@@ -114,6 +114,8 @@ phase1/     ← Feature branches: phase1/referral-fanout, phase1/auth-system
 Never push directly to `main`. Never push directly to `develop`.
 All merges to `develop` require a PR with the FEATURE_LOCKS.json entry updated.
 
+**The team repository is mapped to "upstream". All feature releases must be pushed to upstream/develop after local verification.**
+
 ---
 
 ## ✅ Before Submitting Any PR
