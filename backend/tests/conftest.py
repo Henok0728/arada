@@ -11,7 +11,7 @@ so every `async def test_*` runs under the event loop without extra decorators.
 Shared fixtures defined here are available to ALL test modules.
 """
 import asyncio
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
+
 
 # ---------------------------------------------------------------------------
 # Event-loop policy (required for pytest-asyncio on Python 3.11 + Windows)

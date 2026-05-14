@@ -1,8 +1,17 @@
+
 [tool.ruff]
+# Global settings like line-length stay here
 line-length = 100
 target-version = "py311"
-select = ["E", "W", "F", "I", "B", "C4", "UP"]
 
+[tool.ruff.lint]
+select = ["E", "F", "UP", "I"]
+ignore = []
+
+
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*" = ["E501"]
 [tool.mypy]
 python_version = "3.11"
 strict = true

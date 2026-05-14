@@ -13,7 +13,6 @@ They validate every public function in the auth service:
   - API key constant-time verification
   - token pair factory output shape
 """
-import time
 from datetime import timedelta
 
 import pytest

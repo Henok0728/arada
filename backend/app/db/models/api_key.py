@@ -13,7 +13,7 @@ Security design (CLAUDE.md §Key API Patterns):
 Scope constants are defined here and validated in the auth service.
 """
 import uuid
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Valid API key scopes (enforced at the service layer)
 # ---------------------------------------------------------------------------
-VALID_SCOPES: List[str] = [
+VALID_SCOPES: list[str] = [
     "availability:read",
     "availability:write",
     "referral:create",
@@ -91,7 +91,7 @@ class APIKey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         comment="'dev' or 'live' — matches ll_dev_ / ll_live_ prefix",
     )
     # PostgreSQL native ARRAY(TEXT) for scopes — fast for overlap queries.
-    scopes: Mapped[List[str]] = mapped_column(
+    scopes: Mapped[list[str]] = mapped_column(
         ARRAY(Text),
         nullable=False,
         default=list,
@@ -99,16 +99,16 @@ class APIKey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # ---- Metadata -------------------------------------------------------
-    name: Mapped[Optional[str]] = mapped_column(
+    name: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
         comment="Human-readable label, e.g. 'Receptionist desk key'",
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    last_used_at: Mapped[Optional[str]] = mapped_column(
+    last_used_at: Mapped[str | None] = mapped_column(
         String, nullable=True, comment="ISO datetime of last successful authentication"
     )
-    expires_at: Mapped[Optional[str]] = mapped_column(
+    expires_at: Mapped[str | None] = mapped_column(
         String, nullable=True, comment="ISO datetime; null = non-expiring"
     )
 

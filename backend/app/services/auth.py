@@ -26,8 +26,8 @@ API Key format (CLAUDE.md §Key API Patterns):
 import hashlib
 import secrets
 import string
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -100,10 +100,10 @@ def _build_token(
     subject: str,
     token_type: str,
     expires_delta: timedelta,
-    extra_claims: Optional[dict[str, Any]] = None,
+    extra_claims: dict[str, Any] | None = None,
 ) -> str:
     """Internal helper — encode a JWT with standard + custom claims."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": subject,          # Subject (user UUID as string)
         "type": token_type,      # "access" or "refresh"
@@ -119,9 +119,9 @@ def _build_token(
 def create_access_token(
     subject: str,
     *,
-    hotel_id: Optional[str] = None,
-    role: Optional[str] = None,
-    expires_delta: Optional[timedelta] = None,
+    hotel_id: str | None = None,
+    role: str | None = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create a short-lived JWT access token.
 
@@ -147,7 +147,7 @@ def create_access_token(
 def create_refresh_token(
     subject: str,
     *,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create a long-lived JWT refresh token.
 
@@ -255,7 +255,7 @@ def generate_api_key(environment: str) -> tuple[str, str, str]:
     Raises:
         ValueError: If environment is not "dev" or "live".
     """
-    from app.db.models.api_key import KEY_PREFIX_MAP, ENV_DEV, ENV_LIVE
+    from app.db.models.api_key import ENV_DEV, ENV_LIVE, KEY_PREFIX_MAP
 
     if environment not in (ENV_DEV, ENV_LIVE):
         raise ValueError(

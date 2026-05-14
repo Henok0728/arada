@@ -11,14 +11,12 @@ Integration tests (with a real PostgreSQL + PostGIS instance) live in
 tests/integration/ and cover geo-radius queries that cannot be mocked.
 """
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.db.models.hotel import Hotel, HotelCategory, HotelStatus
-from app.db.repositories.base import BaseRepository
 from app.db.repositories.hotel import HotelRepository
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -65,8 +63,7 @@ class TestBaseRepository:
         hotel = _make_hotel()
         self.session.refresh = AsyncMock(return_value=None)
 
-        result = await self.repo.create(hotel)
-
+        await self.repo.create(hotel)
         self.session.add.assert_called_once_with(hotel)
         self.session.flush.assert_awaited_once()
         self.session.refresh.assert_awaited_once_with(hotel)
@@ -77,7 +74,7 @@ class TestBaseRepository:
         self.session.refresh = AsyncMock(side_effect=lambda obj: None)
 
         updated = await self.repo.update(hotel, status=HotelStatus.ACTIVE)
-
+        assert updated is not None
         assert hotel.status == HotelStatus.ACTIVE
         self.session.flush.assert_awaited_once()
 
@@ -210,7 +207,7 @@ class TestHotelRepository:
         hotel = _make_hotel(status=HotelStatus.SANDBOX)
         self.session.refresh = AsyncMock(side_effect=lambda obj: None)
 
-        result = await self.repo.activate(hotel)
+        await self.repo.activate(hotel)
 
         assert hotel.status == HotelStatus.ACTIVE
         assert hotel.kyc_approved_at is not None

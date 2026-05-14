@@ -13,7 +13,8 @@ Usage:
     class HotelRepository(BaseRepository[Hotel]):
         model = Hotel
 """
-from typing import Any, Generic, Optional, Sequence, Type, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -31,7 +32,7 @@ class BaseRepository(Generic[ModelType]):
         model: Type[ModelType]  — the SQLAlchemy ORM model class
     """
 
-    model: Type[ModelType]
+    model: type[ModelType]
 
     def __init__(self, session: AsyncSession) -> None:
         """Inject the async session — one session per request lifecycle."""
@@ -41,7 +42,7 @@ class BaseRepository(Generic[ModelType]):
     # Read operations
     # ------------------------------------------------------------------
 
-    async def get_by_id(self, record_id: UUID) -> Optional[ModelType]:
+    async def get_by_id(self, record_id: UUID) -> ModelType | None:
         """Fetch a single record by primary key. Returns None if not found."""
         result = await self.session.execute(
             select(self.model).where(self.model.id == record_id)

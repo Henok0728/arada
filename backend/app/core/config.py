@@ -2,8 +2,8 @@
 Central configuration — loaded once at startup.
 All secrets come from environment variables, never from code.
 """
+
 from pydantic_settings import BaseSettings
-from typing import List
 
 
 class Settings(BaseSettings):
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     API_KEY_HASH_ALGORITHM: str = "sha256"
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 
     # SMS Gateway (AfricasTalking)
     AT_USERNAME: str = ""
