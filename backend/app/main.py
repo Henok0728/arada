@@ -6,10 +6,7 @@ Every architectural decision in this file has a documented rationale.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-<<<<<<< HEAD
 
-=======
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 from app.core.config import settings
 
 app = FastAPI(
@@ -28,6 +25,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.api.v1.availability import router as availability_router
+
 @app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "service": "lodge-link-api", "version": "0.1.0"}
+
+app.include_router(
+    availability_router,
+    prefix="/v1/hotels",
+    tags=["Availability"]
+)

@@ -22,11 +22,11 @@
     },
     "backend_availability_api": {
       "description": "GET /v1/availability, POST /v1/hotels/availability, Redis TTL cache layer",
-      "status": "claimed",
+      "status": "released",
       "agent_id": "antigravity-lead-backend",
       "branch": "phase1/celery-workers-and-availability",
       "claimed_at": "2026-05-14T20:46:00Z",
-      "released_at": null,
+      "released_at": "2026-05-14T21:02:00Z",
       "plan_ref": "Module 1 § 1.1 — Availability Check"
     },
     "backend_handshake_system": {
@@ -49,11 +49,11 @@
     },
     "backend_celery_workers": {
       "description": "Celery app setup, webhook queue with exponential backoff, SMS worker",
-      "status": "claimed",
+      "status": "released",
       "agent_id": "antigravity-lead-backend",
       "branch": "phase1/celery-workers-and-availability",
       "claimed_at": "2026-05-14T20:46:00Z",
-      "released_at": null,
+      "released_at": "2026-05-14T21:02:00Z",
       "plan_ref": "Module 1 § 1.3 — Connectivity Resilience"
     },
     "frontend_landing_page": {
