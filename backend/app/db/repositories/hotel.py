@@ -8,23 +8,13 @@ Key query: `find_nearby_active` uses PostGIS ST_DWithin with a GEOGRAPHY
 column so distances are in metres on a WGS-84 spheroid — no CRS projection
 needed. The GIST index on hotels.location makes this O(log n).
 """
-<<<<<<< HEAD
-from collections.abc import Sequence
-from datetime import UTC
-from uuid import UUID
-
-from geoalchemy2 import Geography  # type: ignore[import]
-from geoalchemy2.functions import ST_DWithin, ST_MakePoint  # type: ignore[import]
-from sqlalchemy import and_, cast, select
-=======
+from datetime import datetime, timezone
 from typing import Optional, Sequence
 from uuid import UUID
 
+from geoalchemy2 import Geography  # type: ignore[import]
 from geoalchemy2.functions import ST_DWithin, ST_MakePoint  # type: ignore[import]
 from sqlalchemy import and_, cast, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from geoalchemy2 import Geography  # type: ignore[import]
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 from app.db.models.hotel import Hotel, HotelCategory, HotelStatus
 from app.db.repositories.base import BaseRepository
@@ -39,22 +29,14 @@ class HotelRepository(BaseRepository[Hotel]):
     # Lookup helpers
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
-    async def get_by_slug(self, slug: str) -> Hotel | None:
-=======
     async def get_by_slug(self, slug: str) -> Optional[Hotel]:
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         """Fetch a hotel by its unique URL slug. Returns None if absent."""
         result = await self.session.execute(
             select(Hotel).where(Hotel.slug == slug)
         )
         return result.scalar_one_or_none()
 
-<<<<<<< HEAD
-    async def get_by_email(self, email: str) -> Hotel | None:
-=======
     async def get_by_email(self, email: str) -> Optional[Hotel]:
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         """Fetch a hotel by its registered email address."""
         result = await self.session.execute(
             select(Hotel).where(Hotel.email == email)
@@ -93,13 +75,8 @@ class HotelRepository(BaseRepository[Hotel]):
         longitude: float,
         latitude: float,
         radius_metres: float = 5000.0,
-<<<<<<< HEAD
-        exclude_hotel_id: UUID | None = None,
-        category: HotelCategory | None = None,
-=======
         exclude_hotel_id: Optional[UUID] = None,
         category: Optional[HotelCategory] = None,
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         limit: int = 20,
     ) -> Sequence[Hotel]:
         """Find ACTIVE, referral-eligible hotels within `radius_metres` of a point.
@@ -151,19 +128,10 @@ class HotelRepository(BaseRepository[Hotel]):
 
     async def activate(self, hotel: Hotel) -> Hotel:
         """Transition hotel from SANDBOX → ACTIVE (post-KYC approval)."""
-<<<<<<< HEAD
-        from datetime import datetime
-        return await self.update(
-            hotel,
-            status=HotelStatus.ACTIVE,
-            kyc_approved_at=datetime.now(UTC).isoformat(),
-=======
-        from datetime import datetime, timezone
         return await self.update(
             hotel,
             status=HotelStatus.ACTIVE,
             kyc_approved_at=datetime.now(timezone.utc).isoformat(),
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         )
 
     async def suspend(self, hotel: Hotel) -> Hotel:

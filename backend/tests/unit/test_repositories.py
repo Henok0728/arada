@@ -11,24 +11,15 @@ Integration tests (with a real PostgreSQL + PostGIS instance) live in
 tests/integration/ and cover geo-radius queries that cannot be mocked.
 """
 import uuid
-<<<<<<< HEAD
-from unittest.mock import AsyncMock, MagicMock
-=======
 from unittest.mock import AsyncMock, MagicMock, patch
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 import pytest
 
 from app.db.models.hotel import Hotel, HotelCategory, HotelStatus
-<<<<<<< HEAD
-from app.db.repositories.hotel import HotelRepository
-
-=======
 from app.db.repositories.base import BaseRepository
 from app.db.repositories.hotel import HotelRepository
 
 
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -74,12 +65,8 @@ class TestBaseRepository:
         hotel = _make_hotel()
         self.session.refresh = AsyncMock(return_value=None)
 
-<<<<<<< HEAD
-        await self.repo.create(hotel)
-=======
         result = await self.repo.create(hotel)
 
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         self.session.add.assert_called_once_with(hotel)
         self.session.flush.assert_awaited_once()
         self.session.refresh.assert_awaited_once_with(hotel)
@@ -90,11 +77,7 @@ class TestBaseRepository:
         self.session.refresh = AsyncMock(side_effect=lambda obj: None)
 
         updated = await self.repo.update(hotel, status=HotelStatus.ACTIVE)
-<<<<<<< HEAD
-        assert updated is not None
-=======
 
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         assert hotel.status == HotelStatus.ACTIVE
         self.session.flush.assert_awaited_once()
 
@@ -113,13 +96,9 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-<<<<<<< HEAD
-        assert await self.repo.get_by_id(uuid.uuid4()) is None
-=======
         result = await self.repo.get_by_id(uuid.uuid4())
         assert result is None
 
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     @pytest.mark.asyncio
     async def test_get_by_id_returns_hotel_when_found(self):
         hotel = _make_hotel()
@@ -127,12 +106,8 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = hotel
         self.session.execute = AsyncMock(return_value=mock_result)
 
-<<<<<<< HEAD
-        assert await self.repo.get_by_id(hotel.id) is hotel
-=======
         result = await self.repo.get_by_id(hotel.id)
         assert result is hotel
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     @pytest.mark.asyncio
     async def test_get_by_id_or_raise_raises_when_missing(self):
@@ -165,13 +140,9 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-<<<<<<< HEAD
-        assert await self.repo.delete_by_id(uuid.uuid4()) is False
-=======
         result = await self.repo.delete_by_id(uuid.uuid4())
         assert result is False
 
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 # ===========================================================================
 # HotelRepository — domain-specific methods
@@ -194,12 +165,8 @@ class TestHotelRepository:
         mock_result.scalar_one_or_none.return_value = hotel
         self.session.execute = AsyncMock(return_value=mock_result)
 
-<<<<<<< HEAD
-        assert await self.repo.get_by_slug("addis-gem") is hotel
-=======
         result = await self.repo.get_by_slug("addis-gem")
         assert result is hotel
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     @pytest.mark.asyncio
     async def test_get_by_slug_not_found(self):
@@ -207,12 +174,8 @@ class TestHotelRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-<<<<<<< HEAD
-        await self.repo.get_by_slug("nonexistent-slug")
-=======
         result = await self.repo.get_by_slug("nonexistent-slug")
         assert result is None
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     # ---- is_slug_taken + is_email_taken ---------------------------------
     @pytest.mark.asyncio
@@ -247,11 +210,7 @@ class TestHotelRepository:
         hotel = _make_hotel(status=HotelStatus.SANDBOX)
         self.session.refresh = AsyncMock(side_effect=lambda obj: None)
 
-<<<<<<< HEAD
-        await self.repo.activate(hotel)
-=======
         result = await self.repo.activate(hotel)
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
         assert hotel.status == HotelStatus.ACTIVE
         assert hotel.kyc_approved_at is not None
