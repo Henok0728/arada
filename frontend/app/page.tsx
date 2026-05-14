@@ -1,6 +1,7 @@
 'use client';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation();
@@ -22,12 +23,17 @@ export default function LandingPage() {
       {/* Header & Language Switcher */}
       <header className="w-full p-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
         <div className="text-2xl font-bold text-brand-600">Lodge-Link</div>
-        <button
-          onClick={toggleLanguage}
-          className="px-4 py-2 text-sm font-medium border border-brand-500 text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
-        >
-          {i18n.language === 'en' ? 'አማርኛ' : 'English'}
-        </button>
+        <div className="flex items-center space-x-4">
+          <Link href="/auth/signin" className="text-sm font-medium text-gray-600 hover:text-brand-600 transition-colors">
+            {t('nav_signin')}
+          </Link>
+          <button
+            onClick={toggleLanguage}
+            className="px-4 py-2 text-sm font-medium border border-brand-500 text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
+          >
+            {i18n.language === 'en' ? 'አማርኛ' : 'English'}
+          </button>
+        </div>
       </header>
 
       <main className="flex-grow">
@@ -39,9 +45,9 @@ export default function LandingPage() {
           <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-2xl mx-auto">
             {t('hero_subheadline')}
           </p>
-          <button className="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <Link href="/auth/signup" className="inline-block w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
             {t('cta_button')}
-          </button>
+          </Link>
           
           <div className="mt-8 flex items-center justify-center space-x-2 text-sm font-medium text-gray-500 bg-white inline-flex px-4 py-2 rounded-full shadow-sm">
             <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
@@ -102,9 +108,9 @@ export default function LandingPage() {
         {/* Final CTA Section */}
         <section className="py-20 px-6 text-center max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-brand-900 mb-8">{t('hero_headline')}</h2>
-          <button className="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
+          <Link href="/auth/signup" className="inline-block w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
             {t('cta_button')}
-          </button>
+          </Link>
         </section>
       </main>
 
