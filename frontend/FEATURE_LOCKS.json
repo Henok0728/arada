@@ -1,0 +1,123 @@
+{
+  "_comment": "Feature claiming system. Before building any feature, an agent or developer MUST claim it here via a PR that updates this file. Prevents two agents building the same thing. Claimed features show agent_id and branch. Released = merged to develop.",
+  "_instructions": "To claim: set status='claimed', add your agent_id (e.g. 'claude-dev-1' or 'fatima-laptop'), branch, and claimed_at. To release: set status='released', add released_at after your PR merges.",
+  "phase_1": {
+    "backend_auth_system": {
+      "description": "JWT auth, hotel registration, API key generation + SHA-256 hashing",
+      "status": "released",
+      "agent_id": "antigravity-lead-backend",
+      "branch": "phase1/auth-system",
+      "claimed_at": "2026-05-13T20:27:00Z",
+      "released_at": "2026-05-13T20:58:00Z",
+      "plan_ref": "Module 2 § 2.3 — KYC & API Key Architecture"
+    },
+    "backend_referral_fanout": {
+      "description": "POST /v1/referrals, asyncio fanout, Redis cache, timeout handling",
+      "status": "claimed",
+      "agent_id": "abrsh",
+      "branch": "phase1/referral-fanout",
+      "claimed_at": "2026-05-14T01:30:00Z",
+      "released_at": null,
+      "plan_ref": "Module 1 § 1.1 — FastAPI Fanout"
+    },
+    "backend_availability_api": {
+      "description": "GET /v1/availability, POST /v1/hotels/availability, Redis TTL cache layer",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 1 § 1.1 — Availability Check"
+    },
+    "backend_handshake_system": {
+      "description": "HMAC handshake code generator, offline validation endpoint, Celery SMS dispatch",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 6 § 6.2 — Offline Handshake"
+    },
+    "backend_database_schema": {
+      "description": "Alembic migrations: platform schema, hotel private schemas, RLS policies, PostGIS",
+      "status": "released",
+      "agent_id": "antigravity-lead-backend",
+      "branch": "phase1/database-schema",
+      "claimed_at": "2026-05-13T20:27:00Z",
+      "released_at": "2026-05-13T20:58:00Z",
+      "plan_ref": "Module 1 § 1.2 — PostgreSQL Schema"
+    },
+    "backend_celery_workers": {
+      "description": "Celery app setup, webhook queue with exponential backoff, SMS worker",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 1 § 1.3 — Connectivity Resilience"
+    },
+    "frontend_landing_page": {
+      "description": "Marketing landing page, English + Amharic, mobile-first, conversion CTA",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 4 § 4.1 — Landing Page"
+    },
+    "frontend_emergency_referral_ui": {
+      "description": "3-tap Emergency Referral Mode, results list, trust score display",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 4 § 4.2 — Receptionist UI"
+    },
+    "frontend_availability_grid": {
+      "description": "Visual room availability toggle grid for dashboard-tier hotels",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 2 § 2.1 — Level 3 Dashboard"
+    },
+    "frontend_onboarding_kyc": {
+      "description": "Hotel KYC registration flow, document upload, sandbox activation screen",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 2 § 2.3 — KYC Requirements"
+    },
+    "frontend_pwa_offline": {
+      "description": "Service Worker setup, IndexedDB cache for 50 referrals, offline banner, local code validation",
+      "status": "available",
+      "agent_id": null,
+      "branch": null,
+      "claimed_at": null,
+      "released_at": null,
+      "plan_ref": "Module 6 § 6.2 — Offline Handshake"
+    },
+    "infrastructure_docker": {
+      "description": "Dockerfiles for backend + frontend, docker-compose.yml, init_db.sql",
+      "status": "released",
+      "agent_id": "bootstrap-script",
+      "branch": "main",
+      "claimed_at": "bootstrap",
+      "released_at": "bootstrap",
+      "plan_ref": "Module 8 — Phase 1 Infrastructure"
+    },
+    "infrastructure_ci_github_actions": {
+      "description": "GitHub Actions CI: lint, type-check, test, build for backend + frontend",
+      "status": "released",
+      "agent_id": "bootstrap-script",
+      "branch": "main",
+      "claimed_at": "bootstrap",
+      "released_at": "bootstrap",
+      "plan_ref": "Module 8 — Phase 1 Infrastructure"
+    }
+  }
+}
