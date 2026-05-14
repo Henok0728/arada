@@ -36,6 +36,8 @@ class HotelRegisterRequest(BaseModel):
         description="E.164 format, e.g. +251911234567",
     )
     country_code: str = Field(default="ET", min_length=2, max_length=2)
+    latitude: Optional[float] = Field(None, ge=-90, le=90)
+    longitude: Optional[float] = Field(None, ge=-180, le=180)
 
     # Admin user
     admin_email: EmailStr
