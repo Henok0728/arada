@@ -38,6 +38,9 @@ services:
     volumes:
       - ./backend:/app
     env_file: ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/lodge_link
+      - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
     depends_on:
@@ -54,6 +57,9 @@ services:
     volumes:
       - ./backend:/app
     env_file: ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/lodge_link
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
       - db
