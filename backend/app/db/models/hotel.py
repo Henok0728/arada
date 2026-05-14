@@ -7,22 +7,41 @@ with metre-based inputs on a WGS-84 spheroid — no planar projection needed.
 
 Category and Status use native PostgreSQL enums for DB-level constraint enforcement.
 """
+<<<<<<< HEAD
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from geoalchemy2 import Geography  # type: ignore[import]
 from sqlalchemy import Boolean, Enum, Integer, String
+=======
+import enum
+import uuid
+from typing import TYPE_CHECKING, List, Optional
+
+from geoalchemy2 import Geography  # type: ignore[import]
+from sqlalchemy import Boolean, Enum, Integer, String, Text
+from sqlalchemy.dialects.postgresql import UUID
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from app.db.models.api_key import APIKey
     from app.db.models.referral import Referral
     from app.db.models.user import User
 
 
 class HotelCategory(StrEnum):
+=======
+    from app.db.models.referral import Referral
+    from app.db.models.user import User
+    from app.db.models.api_key import APIKey
+
+
+class HotelCategory(str, enum.Enum):
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     """Tier classification used for routing and trust-score weighting."""
     BUDGET = "BUDGET"
     STANDARD = "STANDARD"
@@ -30,7 +49,11 @@ class HotelCategory(StrEnum):
     LUXURY = "LUXURY"
 
 
+<<<<<<< HEAD
 class HotelStatus(StrEnum):
+=======
+class HotelStatus(str, enum.Enum):
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     """KYC lifecycle state machine.
 
     PENDING_KYC  → SANDBOX (after document upload)
@@ -72,7 +95,11 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # Use ST_DWithin(location, ST_MakePoint(lng, lat)::geography, radius_metres)
     # for geo-radius queries. Returns True/False without a full table scan
     # when a GIST index is present (added in migration).
+<<<<<<< HEAD
     location: Mapped[object | None] = mapped_column(
+=======
+    location: Mapped[Optional[object]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         Geography(geometry_type="POINT", srid=4326),
         nullable=True,
         comment="PostGIS GEOGRAPHY(POINT, 4326) — WGS-84 lng/lat",
@@ -84,7 +111,11 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         default=HotelCategory.STANDARD,
     )
+<<<<<<< HEAD
     stars: Mapped[int | None] = mapped_column(
+=======
+    stars: Mapped[Optional[int]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         Integer, nullable=True, comment="1–5 star rating; null if unrated"
     )
 
@@ -95,7 +126,11 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         default=HotelStatus.PENDING_KYC,
         index=True,
     )
+<<<<<<< HEAD
     kyc_approved_at: Mapped[str | None] = mapped_column(
+=======
+    kyc_approved_at: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String, nullable=True
     )  # datetime stored as ISO string for cross-TZ safety; cast in service layer
 
@@ -104,7 +139,11 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True, index=True
     )
+<<<<<<< HEAD
     website_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+=======
+    website_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     # ---- Referral config ------------------------------------------------
     is_referral_eligible: Mapped[bool] = mapped_column(
@@ -113,6 +152,7 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # ---- Relationships --------------------------------------------------
+<<<<<<< HEAD
     users: Mapped[list["User"]] = relationship(
         "User", back_populates="hotel", cascade="all, delete-orphan"
     )
@@ -120,11 +160,24 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         "APIKey", back_populates="hotel", cascade="all, delete-orphan"
     )
     outbound_referrals: Mapped[list["Referral"]] = relationship(
+=======
+    users: Mapped[List["User"]] = relationship(
+        "User", back_populates="hotel", cascade="all, delete-orphan"
+    )
+    api_keys: Mapped[List["APIKey"]] = relationship(
+        "APIKey", back_populates="hotel", cascade="all, delete-orphan"
+    )
+    outbound_referrals: Mapped[List["Referral"]] = relationship(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         "Referral",
         foreign_keys="[Referral.origin_hotel_id]",
         back_populates="origin_hotel",
     )
+<<<<<<< HEAD
     inbound_referrals: Mapped[list["Referral"]] = relationship(
+=======
+    inbound_referrals: Mapped[List["Referral"]] = relationship(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         "Referral",
         foreign_keys="[Referral.destination_hotel_id]",
         back_populates="destination_hotel",

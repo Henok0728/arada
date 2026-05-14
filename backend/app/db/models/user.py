@@ -9,9 +9,15 @@ Role hierarchy:
   RECEPTIONIST — can initiate referrals and view room availability
   VIEWER       — read-only analytics access
 """
+<<<<<<< HEAD
 import uuid
 from enum import StrEnum
 from typing import TYPE_CHECKING
+=======
+import enum
+import uuid
+from typing import TYPE_CHECKING, Optional
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 from sqlalchemy import Boolean, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -23,7 +29,11 @@ if TYPE_CHECKING:
     from app.db.models.hotel import Hotel
 
 
+<<<<<<< HEAD
 class UserRole(StrEnum):
+=======
+class UserRole(str, enum.Enum):
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     """Role enum for RBAC within a hotel account."""
     ADMIN = "ADMIN"
     RECEPTIONIST = "RECEPTIONIST"
@@ -73,7 +83,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Boolean, nullable=False, default=False,
         comment="Email verification flag"
     )
+<<<<<<< HEAD
     last_login_at: Mapped[str | None] = mapped_column(
+=======
+    last_login_at: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String, nullable=True
     )
 

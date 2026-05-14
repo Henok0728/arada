@@ -16,11 +16,19 @@ The fanout loop (asyncio.gather) creates one Referral row per candidate hotel
 with status=PENDING. Only the first hotel to ACCEPT wins; the others
 are automatically DECLINED by the fanout service.
 """
+<<<<<<< HEAD
 import uuid
 from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import Enum, ForeignKey, Integer, String, Text
+=======
+import enum
+import uuid
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import Date, Enum, ForeignKey, Integer, String, Text
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,7 +38,11 @@ if TYPE_CHECKING:
     from app.db.models.hotel import Hotel
 
 
+<<<<<<< HEAD
 class ReferralStatus(StrEnum):
+=======
+class ReferralStatus(str, enum.Enum):
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     """All possible states a referral can be in.
 
     String values are stored verbatim in PostgreSQL for readability in
@@ -44,7 +56,11 @@ class ReferralStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
+<<<<<<< HEAD
 class RoomType(StrEnum):
+=======
+class RoomType(str, enum.Enum):
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     """Common room type taxonomy used across the referral network."""
     SINGLE = "SINGLE"
     DOUBLE = "DOUBLE"
@@ -88,7 +104,11 @@ class Referral(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     # Nullable: set at PENDING creation; confirmed when a specific destination
     # hotel accepts. In fanout mode, each row targets one candidate.
+<<<<<<< HEAD
     destination_hotel_id: Mapped[uuid.UUID | None] = mapped_column(
+=======
+    destination_hotel_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         UUID(as_uuid=True),
         ForeignKey("platform.hotels.id", ondelete="SET NULL"),
         nullable=True,
@@ -109,16 +129,27 @@ class Referral(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         default=RoomType.DOUBLE,
     )
+<<<<<<< HEAD
     check_in_date: Mapped[str | None] = mapped_column(
         String(10), nullable=True, comment="ISO date YYYY-MM-DD"
     )
     check_out_date: Mapped[str | None] = mapped_column(
+=======
+    check_in_date: Mapped[Optional[str]] = mapped_column(
+        String(10), nullable=True, comment="ISO date YYYY-MM-DD"
+    )
+    check_out_date: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String(10), nullable=True, comment="ISO date YYYY-MM-DD"
     )
     party_size: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1
     )
+<<<<<<< HEAD
     special_requests: Mapped[str | None] = mapped_column(
+=======
+    special_requests: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         Text, nullable=True
     )
 
@@ -133,15 +164,24 @@ class Referral(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # ---- HMAC handshake code (set on ACCEPTED, validated on COMPLETED) ---
     # The HMAC code is generated server-side (Module 6 §6.2) and sent via SMS.
     # Stored here so the offline validator can verify without an API call.
+<<<<<<< HEAD
     handshake_code: Mapped[str | None] = mapped_column(
         String(64), nullable=True, index=True,
         comment="HMAC-SHA256 offline validation code — see handshake service"
     )
     handshake_validated_at: Mapped[str | None] = mapped_column(
+=======
+    handshake_code: Mapped[Optional[str]] = mapped_column(
+        String(64), nullable=True, index=True,
+        comment="HMAC-SHA256 offline validation code — see handshake service"
+    )
+    handshake_validated_at: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String, nullable=True, comment="ISO datetime when code was validated at check-in"
     )
 
     # ---- Lifecycle timestamps -------------------------------------------
+<<<<<<< HEAD
     accepted_at: Mapped[str | None] = mapped_column(
         String, nullable=True, comment="ISO datetime when destination hotel accepted"
     )
@@ -155,14 +195,36 @@ class Referral(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         String, nullable=True, comment="ISO datetime when Celery marked referral expired"
     )
     cancelled_at: Mapped[str | None] = mapped_column(
+=======
+    accepted_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True, comment="ISO datetime when destination hotel accepted"
+    )
+    declined_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True
+    )
+    completed_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True, comment="ISO datetime of successful check-in (COMPLETED)"
+    )
+    expired_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True, comment="ISO datetime when Celery marked referral expired"
+    )
+    cancelled_at: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String, nullable=True
     )
 
     # ---- Internal notes -------------------------------------------------
+<<<<<<< HEAD
     decline_reason: Mapped[str | None] = mapped_column(
         String(500), nullable=True
     )
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+=======
+    decline_reason: Mapped[Optional[str]] = mapped_column(
+        String(500), nullable=True
+    )
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     # ---- Relationships --------------------------------------------------
     origin_hotel: Mapped["Hotel"] = relationship(

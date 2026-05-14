@@ -1,0 +1,40 @@
+{
+  "_comment": "Single source of truth for build phase progression. Updated by team lead after exit criteria review. Agents READ this before starting work to know which phase is active.",
+  "current_phase": 1,
+  "phase_name": "MVP",
+  "phase_start_date": null,
+  "phases": {
+    "1": {
+      "name": "MVP",
+      "status": "in_progress",
+      "exit_criteria_passed": false,
+      "unlocked_at": null,
+      "completed_at": null,
+      "spec_document": "docs/phases/PHASE_1_MVP.md"
+    },
+    "2": {
+      "name": "Beta",
+      "status": "locked",
+      "exit_criteria_passed": false,
+      "unlocked_at": null,
+      "completed_at": null,
+      "spec_document": "docs/phases/PHASE_2_BETA.md"
+    },
+    "3": {
+      "name": "Scale",
+      "status": "locked",
+      "exit_criteria_passed": false,
+      "unlocked_at": null,
+      "completed_at": null,
+      "spec_document": "docs/phases/PHASE_3_SCALE.md"
+    },
+    "4": {
+      "name": "AI-Optimize",
+      "status": "locked",
+      "exit_criteria_passed": false,
+      "unlocked_at": null,
+      "completed_at": null,
+      "spec_document": "docs/phases/PHASE_4_AI.md"
+    }
+  }
+}

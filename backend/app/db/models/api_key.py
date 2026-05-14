@@ -13,7 +13,11 @@ Security design (CLAUDE.md §Key API Patterns):
 Scope constants are defined here and validated in the auth service.
 """
 import uuid
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import TYPE_CHECKING, List, Optional
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
@@ -28,7 +32,11 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 # Valid API key scopes (enforced at the service layer)
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 VALID_SCOPES: list[str] = [
+=======
+VALID_SCOPES: List[str] = [
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     "availability:read",
     "availability:write",
     "referral:create",
@@ -91,7 +99,11 @@ class APIKey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         comment="'dev' or 'live' — matches ll_dev_ / ll_live_ prefix",
     )
     # PostgreSQL native ARRAY(TEXT) for scopes — fast for overlap queries.
+<<<<<<< HEAD
     scopes: Mapped[list[str]] = mapped_column(
+=======
+    scopes: Mapped[List[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         ARRAY(Text),
         nullable=False,
         default=list,
@@ -99,16 +111,27 @@ class APIKey(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # ---- Metadata -------------------------------------------------------
+<<<<<<< HEAD
     name: Mapped[str | None] = mapped_column(
+=======
+    name: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String(100),
         nullable=True,
         comment="Human-readable label, e.g. 'Receptionist desk key'",
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+<<<<<<< HEAD
     last_used_at: Mapped[str | None] = mapped_column(
         String, nullable=True, comment="ISO datetime of last successful authentication"
     )
     expires_at: Mapped[str | None] = mapped_column(
+=======
+    last_used_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True, comment="ISO datetime of last successful authentication"
+    )
+    expires_at: Mapped[Optional[str]] = mapped_column(
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
         String, nullable=True, comment="ISO datetime; null = non-expiring"
     )
 
