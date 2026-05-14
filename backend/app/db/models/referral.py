@@ -20,7 +20,7 @@ import enum
 import uuid
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -139,6 +139,13 @@ class Referral(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     handshake_validated_at: Mapped[Optional[str]] = mapped_column(
         String, nullable=True, comment="ISO datetime when code was validated at check-in"
+    )
+    handshake_expires_at: Mapped[Optional[str]] = mapped_column(
+        String, nullable=True, comment="ISO datetime when handshake code expires"
+    )
+    is_handshake_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false",
+        comment="True if the code has been successfully verified"
     )
 
     # ---- Lifecycle timestamps -------------------------------------------

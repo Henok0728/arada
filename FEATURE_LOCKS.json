@@ -31,10 +31,10 @@
     },
     "backend_handshake_system": {
       "description": "HMAC handshake code generator, offline validation endpoint, Celery SMS dispatch",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "antigravity-backend",
+      "branch": "phase1/handshake-system",
+      "claimed_at": "2026-05-14T22:48:00Z",
       "released_at": null,
       "plan_ref": "Module 6 § 6.2 — Offline Handshake"
     },
