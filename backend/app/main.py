@@ -25,21 +25,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ---------------------------------------------------------------------------
+# Router imports — all Phase 1 routes registered here.
+# To add a new feature: create app/api/v1/<feature>.py, import here, register.
+# ---------------------------------------------------------------------------
 from app.api.v1.availability import router as availability_router
 from app.api.v1.handshake import router as handshake_router
+from app.api.v1.referrals import router as referrals_router
+
 
 @app.get("/health", tags=["System"])
 async def health_check():
     return {"status": "ok", "service": "lodge-link-api", "version": "0.1.0"}
 
+
+# Availability — GET/POST /v1/hotels/availability
 app.include_router(
     availability_router,
     prefix="/v1/hotels",
-    tags=["Availability"]
+    tags=["Availability"],
 )
 
+# Handshake — POST /v1/handshake/generate, /v1/handshake/verify
 app.include_router(
     handshake_router,
     prefix="/v1/handshake",
-    tags=["Handshake"]
+    tags=["Handshake"],
 )
+
+# Referral Fan-out — POST /v1/referrals, GET /v1/referrals/{session_id}
+app.include_router(
+    referrals_router,
+    prefix="/v1/referrals",
+    tags=["Referrals"],
+)
+

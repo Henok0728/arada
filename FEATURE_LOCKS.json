@@ -13,11 +13,11 @@
     },
     "backend_referral_fanout": {
       "description": "POST /v1/referrals, asyncio fanout, Redis cache, timeout handling",
-      "status": "claimed",
-      "agent_id": "abrsh",
+      "status": "released",
+      "agent_id": "antigravity-lead-backend",
       "branch": "phase1/referral-fanout",
-      "claimed_at": "2026-05-14T01:30:00Z",
-      "released_at": null,
+      "claimed_at": "2026-05-15T02:02:00Z",
+      "released_at": "2026-05-15T02:10:00Z",
       "plan_ref": "Module 1 § 1.1 — FastAPI Fanout"
     },
     "backend_availability_api": {
