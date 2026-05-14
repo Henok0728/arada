@@ -85,11 +85,11 @@
     },
     "frontend_onboarding_kyc": {
       "description": "Hotel KYC registration flow, document upload, sandbox activation screen",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
-      "released_at": null,
+      "status": "released",
+      "agent_id": "antigravity-frontend",
+      "branch": "phase1/kyc-onboarding",
+      "claimed_at": "2026-05-14T20:53:00Z",
+      "released_at": "2026-05-14T21:16:00Z",
       "plan_ref": "Module 2 § 2.3 — KYC Requirements"
     },
     "frontend_pwa_offline": {
