@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # silently drop unknown env vars (e.g. TEST_DATABASE_URL)
 
 
 settings = Settings()
