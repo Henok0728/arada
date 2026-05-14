@@ -93,9 +93,7 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-        result = await self.repo.get_by_id(uuid.uuid4())
-        assert result is None
-
+        assert await self.repo.get_by_id(uuid.uuid4()) is None
     @pytest.mark.asyncio
     async def test_get_by_id_returns_hotel_when_found(self):
         hotel = _make_hotel()
@@ -103,8 +101,7 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = hotel
         self.session.execute = AsyncMock(return_value=mock_result)
 
-        result = await self.repo.get_by_id(hotel.id)
-        assert result is hotel
+        assert await self.repo.get_by_id(hotel.id) is hotel
 
     @pytest.mark.asyncio
     async def test_get_by_id_or_raise_raises_when_missing(self):
@@ -137,9 +134,7 @@ class TestBaseRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-        result = await self.repo.delete_by_id(uuid.uuid4())
-        assert result is False
-
+        assert await self.repo.delete_by_id(uuid.uuid4()) is False
 
 # ===========================================================================
 # HotelRepository — domain-specific methods
@@ -162,8 +157,7 @@ class TestHotelRepository:
         mock_result.scalar_one_or_none.return_value = hotel
         self.session.execute = AsyncMock(return_value=mock_result)
 
-        result = await self.repo.get_by_slug("addis-gem")
-        assert result is hotel
+        assert await self.repo.get_by_slug("addis-gem") is hotel
 
     @pytest.mark.asyncio
     async def test_get_by_slug_not_found(self):
@@ -171,8 +165,7 @@ class TestHotelRepository:
         mock_result.scalar_one_or_none.return_value = None
         self.session.execute = AsyncMock(return_value=mock_result)
 
-        result = await self.repo.get_by_slug("nonexistent-slug")
-        assert result is None
+        await self.repo.get_by_slug("nonexistent-slug")
 
     # ---- is_slug_taken + is_email_taken ---------------------------------
     @pytest.mark.asyncio
