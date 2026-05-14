@@ -6,7 +6,10 @@ Every architectural decision in this file has a documented rationale.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 from app.core.config import settings
 
 app = FastAPI(

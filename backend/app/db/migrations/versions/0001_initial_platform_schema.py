@@ -18,7 +18,11 @@ What this migration does:
 
 Downgrade removes all objects in reverse order to avoid FK constraint errors.
 """
+<<<<<<< HEAD
 from collections.abc import Sequence
+=======
+from typing import Sequence, Union
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 import geoalchemy2  # noqa: F401 — registers Geography type with SQLAlchemy
 import sqlalchemy as sa
@@ -27,9 +31,15 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers
 revision: str = "0001"
+<<<<<<< HEAD
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
+=======
+down_revision: Union[str, None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+>>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 
 def upgrade() -> None:
