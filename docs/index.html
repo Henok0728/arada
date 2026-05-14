@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lodge-Link Architecture Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2438;
+    --border: #1e3a5f;
+    --accent: #00d4aa;
+    --accent2: #f59e0b;
+    --accent3: #6366f1;
+    --accent4: #ef4444;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-muted: #334155;
+    --green: #10b981;
+    --blue: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 200px;
+    background: radial-gradient(ellipse, rgba(0,212,170,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(99,102,241,0.1));
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+  h1 { font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 0.75rem; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-dim); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+  
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(0,212,170,0.3); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card-label-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+  
+  /* Phase Timeline */
+  .phase-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .phase {
+    padding: 1.5rem;
+    background: var(--surface);
+    position: relative;
+    border-right: 1px solid var(--border);
+    cursor: default;
+  }
+  .phase:last-child { border-right: none; }
+  .phase-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 600;
+    opacity: 0.07;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    line-height: 1;
+  }
+  .phase-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .phase-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .phase-duration { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 1rem; }
+  .phase-goal { font-size: 0.8rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 1rem; }
+  .phase-kpi { display: flex; flex-direction: column; gap: 0.35rem; }
+  .kpi-row { display: flex; justify-content: space-between; font-size: 0.72rem; }
+  .kpi-label { color: var(--text-dim); }
+  .kpi-val { font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 600; }
+  
+  .phase-1 .phase-tag { background: rgba(16,185,129,0.15); color: #10b981; }
+  .phase-1 .phase-num { color: #10b981; }
+  .phase-2 .phase-tag { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .phase-2 .phase-num { color: #3b82f6; }
+  .phase-3 .phase-tag { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .phase-3 .phase-num { color: #f59e0b; }
+  .phase-4 .phase-tag { background: rgba(99,102,241,0.15); color: #6366f1; }
+  .phase-4 .phase-num { color: #6366f1; }
+
+  /* Architecture Flow */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+  .arch-node {
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    min-width: 110px;
+  }
+  .arch-node-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .arch-node-label { font-size: 0.7rem; font-weight: 600; color: var(--text); }
+  .arch-node-sub { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.1rem; }
+  .arch-arrow {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0.5rem;
+    gap: 0.15rem;
+  }
+  .arrow-line { width: 40px; height: 1px; background: linear-gradient(90deg, var(--border), var(--accent)); }
+  .arrow-head { font-size: 0.7rem; color: var(--accent); margin-left: 28px; }
+  .arrow-label { font-size: 0.55rem; color: var(--text-dim); white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
+  
+  /* Integration Levels */
+  .integration-level {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: var(--surface2);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .integration-level:hover { border-color: var(--border); }
+  .integration-level:last-child { margin-bottom: 0; }
+  .il-badge {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .il-1 { background: rgba(16,185,129,0.15); color: #10b981; }
+  .il-2 { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .il-3 { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .il-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .il-desc { font-size: 0.72rem; color: var(--text-dim); line-height: 1.5; }
+  .il-target { font-size: 0.65rem; color: var(--accent); margin-top: 0.3rem; font-family: 'JetBrains Mono', monospace; }
+  
+  /* Trust Score */
+  .trust-factor {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .tf-label { font-size: 0.75rem; color: var(--text-dim); width: 130px; flex-shrink: 0; }
+  .tf-bar-bg { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .tf-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent3)); transition: width 1s ease; }
+  .tf-weight { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent2); width: 32px; text-align: right; }
+  
+  /* Resilience Stack */
+  .resilience-layer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid transparent;
+  }
+  .rl-1 { border-color: var(--green); }
+  .rl-2 { border-color: var(--blue); }
+  .rl-3 { border-color: var(--accent2); }
+  .rl-4 { border-color: var(--accent3); }
+  .rl-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-dim); width: 20px; }
+  .rl-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.1rem; }
+  .rl-desc { font-size: 0.68rem; color: var(--text-dim); }
+  
+  /* Corridor */
+  .corridor-stage {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+  .cs-stage-badge {
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-top: 0.1rem;
+  }
+  .cs-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.15rem; }
+  .cs-desc { font-size: 0.68rem; color: var(--text-dim); line-height: 1.4; }
+  
+  /* Stats Row */
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  
+  /* Handshake UI */
+  .handshake-screen {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    font-size: 0.75rem;
+  }
+  .hs-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hs-status { display: flex; align-items: center; gap: 0.4rem; }
+  .hs-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  .hs-code-block {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0,212,170,0.05);
+    border-radius: 8px;
+    border: 1px dashed rgba(0,212,170,0.2);
+    margin-bottom: 1rem;
+  }
+  .hs-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+  }
+  .hs-code-label { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.25rem; }
+  .hs-row { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid var(--surface); }
+  .hs-row:last-child { border-bottom: none; }
+  .hs-key { color: var(--text-dim); }
+  .hs-val { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+  
+  /* Section Header */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    background: rgba(0,212,170,0.08);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid rgba(0,212,170,0.2);
+  }
+  .section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+  
+  .full-width { grid-column: 1 / -1; }
+  
+  footer {
+    text-align: center;
+    padding-top: 2rem;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 1.5rem;
+  }
+  
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.15);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  
+  .tag-list { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+  .tag {
+    font-size: 0.62rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    padding: 0.35rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    line-height: 1.4;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check { color: var(--accent); font-size: 0.65rem; margin-top: 0.1rem; flex-shrink: 0; }
+  .check.warn { color: var(--accent2); }
+  .check.sec { color: var(--accent3); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-badge"><div class="dot"></div> Lodge-Link Platform Architecture</div>
+  <h1>The <span>Referral Switch</span><br>Implementation Blueprint</h1>
+  <p class="subtitle">A production-grade B2B middleware for Ethiopian hospitality interoperability</p>
+</div>
+
+<!-- KPI Stats Row -->
+<div class="grid-4" style="margin-bottom:1.5rem">
+  <div class="stat-card">
+    <div class="stat-val">&lt;800ms</div>
+    <div class="stat-label">Referral Response Target</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">4</div>
+    <div class="stat-label">Build Phases</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">1,000+</div>
+    <div class="stat-label">Phase 4 Hotel Target</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val">93%</div>
+    <div class="stat-label">Phase 4 Fulfillment Rate</div>
+  </div>
+</div>
+
+<!-- Phase Timeline -->
+<div class="phase-strip">
+  <div class="phase phase-1">
+    <div class="phase-num">1</div>
+    <div class="phase-tag">MVP</div>
+    <div class="phase-name">Prove It</div>
+    <div class="phase-duration">Months 1–4</div>
+    <div class="phase-goal">Working referral switch for 10–20 hotels in Addis Ababa. Dashboard-tier integration. Prove core concept with real events.</div>
+    <div class="phase-kpi">
+      <div class="kpi-row"><span class="kpi-label">Hotels</span><span class="kpi-val">20</span></div>
+      <div class="kpi-row"><span class="kpi-label">Monthly Referrals</span><span class="kpi-val">100</span></div>
+      <div class="kpi-row"><span class="kpi-label">Fulfillment Rate</span><span class="kpi-val">70%</span></div>
+      <div class="kpi-row"><span class="kpi-label">Integration Level</span><span class="kpi-val">Dashboard</span></div>
+    </div>
+  </div>
+  <div class="phase phase-2">
+    <div class="phase-num">2</div>
+    <div class="phase-tag">Beta</div>
+    <div class="phase-name">Scale Trust</div>
+    <div class="phase-duration">Months 5–9</div>
+    <div class="phase-goal">Expand to 3 Ethiopian cities. Activate trust scoring. Webhook-Lite integration. Begin ML data collection.</div>
+    <div class="phase-kpi">
+      <div class="kpi-row"><span class="kpi-label">Hotels</span><span class="kpi-val">100</span></div>
+      <div class="kpi-row"><span class="kpi-label">Monthly Referrals</span><span class="kpi-val">500</span></div>
+      <div class="kpi-row"><span class="kpi-label">Fulfillment Rate</span><span class="kpi-val">80%</span></div>
+      <div class="kpi-row"><span class="kpi-label">Integration Level</span><span class="kpi-val">+Webhook</span></div>
+    </div>
+  </div>
+  <div class="phase phase-3">
+    <div class="phase-num">3</div>
+    <div class="phase-tag">Scale</div>
+    <div class="phase-name">Go Regional</div>
+    <div class="phase-duration">Months 10–18</div>
+    <div class="phase-goal">API-First PMS integration. Expand to Kenya. Corridor partnerships. Operational profitability.</div>
+    <div class="phase-kpi">
+      <div class="kpi-row"><span class="kpi-label">Hotels</span><span class="kpi-val">300</span></div>
+      <div class="kpi-row"><span class="kpi-label">Monthly Referrals</span><span class="kpi-val">3,000</span></div>
+      <div class="kpi-row"><span class="kpi-label">Fulfillment Rate</span><span class="kpi-val">88%</span></div>
+      <div class="kpi-row"><span class="kpi-label">Markets</span><span class="kpi-val">ET + KE</span></div>
+    </div>
+  </div>
+  <div class="phase phase-4">
+    <div class="phase-num">4</div>
+    <div class="phase-tag">AI-Optimize</div>
+    <div class="phase-name">Intelligence</div>
+    <div class="phase-duration">Months 19–30</div>
+    <div class="phase-goal">Predictive demand ML. Vibe Matching. 5 East African markets. Digital Tourist Corridor API.</div>
+    <div class="phase-kpi">
+      <div class="kpi-row"><span class="kpi-label">Hotels</span><span class="kpi-val">1,000+</span></div>
+      <div class="kpi-row"><span class="kpi-label">Monthly Referrals</span><span class="kpi-val">15,000+</span></div>
+      <div class="kpi-row"><span class="kpi-label">Fulfillment Rate</span><span class="kpi-val">93%</span></div>
+      <div class="kpi-row"><span class="kpi-label">Markets</span><span class="kpi-val">5+ EA</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Integration Levels -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#10b981"></div> Module 2 — Integration Levels</div>
+    <h2>Three Ways to Join</h2>
+    <div class="integration-level">
+      <div class="il-badge il-1">L1</div>
+      <div>
+        <div class="il-title">API-First</div>
+        <div class="il-desc">Bidirectional REST. Real-time availability sync via webhooks. Full automation — no human in the loop.</div>
+        <div class="il-target">→ OPERA, Mews, Cloudbeds, custom PMS</div>
+      </div>
+    </div>
+    <div class="integration-level">
+      <div class="il-badge il-2">L2</div>
+      <div>
+        <div class="il-title">Webhook-Lite</div>
+        <div class="il-desc">Mobile-friendly update widget. Manager taps availability status morning/evening. 30-min polling cache.</div>
+        <div class="il-target">→ Independent 20–80 room hotels</div>
+      </div>
+    </div>
+    <div class="integration-level">
+      <div class="il-badge il-3">L3</div>
+      <div>
+        <div class="il-title">Web Dashboard (PWA)</div>
+        <div class="il-desc">Visual room grid. SMS alerts. One-tap Accept. No code, no computer — works on any Android phone.</div>
+        <div class="il-target">→ Guesthouses, eco-lodges, remote properties</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trust Score -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#6366f1"></div> Module 3 — Trust Engine</div>
+    <h2>Trust Score Algorithm</h2>
+    <div style="margin-bottom:1.25rem">
+      <div class="trust-factor">
+        <div class="tf-label">Fulfillment Rate</div>
+        <div class="tf-bar-bg"><div class="tf-bar" style="width:35%"></div></div>
+        <div class="tf-weight">35%</div>
+      </div>
+      <div class="trust-factor">
+        <div class="tf-label">Response Time</div>
+        <div class="tf-bar-bg"><div class="tf-bar" style="width:20%"></div></div>
+        <div class="tf-weight">20%</div>
+      </div>
+      <div class="trust-factor">
+        <div class="tf-label">Price Honesty</div>
+        <div class="tf-bar-bg"><div class="tf-bar" style="width:20%"></div></div>
+        <div class="tf-weight">20%</div>
+      </div>
+      <div class="trust-factor">
+        <div class="tf-label">Guest Feedback</div>
+        <div class="tf-bar-bg"><div class="tf-bar" style="width:15%"></div></div>
+        <div class="tf-weight">15%</div>
+      </div>
+      <div class="trust-factor">
+        <div class="tf-label">Volume Bonus</div>
+        <div class="tf-bar-bg"><div class="tf-bar" style="width:10%"></div></div>
+        <div class="tf-weight">10%</div>
+      </div>
+    </div>
+    <div style="font-size:0.72rem; color:var(--text-dim); line-height:1.5; padding:0.75rem; background:var(--surface2); border-radius:8px; border-left:3px solid var(--accent4);">
+      ⚠️ A single verified fraud event triggers immediate score suspension. Three unfulfilled referrals in 30 days → Probation flag.
+    </div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Offline Handshake -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#f59e0b"></div> Module 6 — Ethiopian Context</div>
+    <h2>Offline Handshake Protocol</h2>
+    <div class="handshake-screen">
+      <div class="hs-title">
+        <span>LODGE-LINK DASHBOARD</span>
+        <span class="hs-status"><div class="hs-dot" style="background:#f59e0b"></div> OFFLINE MODE</span>
+      </div>
+      <div class="hs-code-block">
+        <div class="hs-code">HTL-7K2M</div>
+        <div class="hs-code-label">CRYPTOGRAPHICALLY SIGNED REFERRAL CODE</div>
+      </div>
+      <div class="hs-row"><span class="hs-key">From Hotel</span><span class="hs-val">Sheraton Addis</span></div>
+      <div class="hs-row"><span class="hs-key">Room Type</span><span class="hs-val">Double Room</span></div>
+      <div class="hs-row"><span class="hs-key">Arrival</span><span class="hs-val">Tonight</span></div>
+      <div class="hs-row"><span class="hs-key">Cached At</span><span class="hs-val">2:34 PM · 50 referrals cached</span></div>
+      <div class="hs-row" style="padding-top:0.75rem">
+        <span style="font-size:0.68rem; background:rgba(16,185,129,0.15); color:#10b981; padding:0.3rem 0.75rem; border-radius:6px; cursor:pointer;">✓ CONFIRM CHECK-IN → Syncs on reconnect</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connectivity Resilience -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#3b82f6"></div> Module 1 — Connectivity Resilience</div>
+    <h2>4-Layer Fallback Stack</h2>
+    <div class="resilience-layer rl-1">
+      <div class="rl-num">L1</div>
+      <div>
+        <div class="rl-title">Redis Availability Cache (90s TTL)</div>
+        <div class="rl-desc">All availability data served from cache. Connectivity blips are invisible to users.</div>
+      </div>
+    </div>
+    <div class="resilience-layer rl-2">
+      <div class="rl-num">L2</div>
+      <div>
+        <div class="rl-title">Celery Webhook Queue (Exponential Backoff)</div>
+        <div class="rl-desc">Failed notifications queued persistently. Auto-delivers when hotel reconnects. Max retry: ~68 min.</div>
+      </div>
+    </div>
+    <div class="resilience-layer rl-3">
+      <div class="rl-num">L3</div>
+      <div>
+        <div class="rl-title">HMAC Offline Handshake Code</div>
+        <div class="rl-desc">Cryptographically verifiable 6-char code. PWA validates without calling servers.</div>
+      </div>
+    </div>
+    <div class="resilience-layer rl-4">
+      <div class="rl-num">L4</div>
+      <div>
+        <div class="rl-title">SMS as Transport Layer (Always-On)</div>
+        <div class="rl-desc">Every referral dispatched via SMS (AfricasTalking). Guaranteed delivery without data.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Architecture Fanout Flow -->
+<div class="card" style="margin-bottom:1.5rem">
+  <div class="section-header">
+    <div class="section-num">MODULE 1</div>
+    <div class="section-title">FastAPI Async Referral Fanout — How 5 hotel checks become 1 fast response</div>
+  </div>
+  <div class="arch-flow">
+    <div class="arch-node">
+      <div class="arch-node-icon">🏨</div>
+      <div class="arch-node-label">Hotel A</div>
+      <div class="arch-node-sub">Full tonight</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head">▶</div>
+      <div class="arrow-label">POST /referrals</div>
+    </div>
+    <div class="arch-node" style="border-color:rgba(0,212,170,0.4)">
+      <div class="arch-node-icon">⚡</div>
+      <div class="arch-node-label">FastAPI</div>
+      <div class="arch-node-sub">AsyncIO fanout</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head">▶</div>
+      <div class="arrow-label">async gather()</div>
+    </div>
+    <div class="arch-node" style="border-color:rgba(245,158,11,0.3)">
+      <div class="arch-node-icon">📋</div>
+      <div class="arch-node-label">Redis Cache</div>
+      <div class="arch-node-sub">90s TTL hit</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head">▶</div>
+      <div class="arrow-label">concurrent checks</div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.4rem">
+      <div class="arch-node" style="min-width:90px; padding:0.5rem">
+        <div style="font-size:0.65rem; font-weight:600;">Hotel B</div>
+        <div style="font-size:0.6rem; color:var(--green)">✓ Available</div>
+      </div>
+      <div class="arch-node" style="min-width:90px; padding:0.5rem">
+        <div style="font-size:0.65rem; font-weight:600;">Hotel C</div>
+        <div style="font-size:0.6rem; color:var(--green)">✓ Available</div>
+      </div>
+      <div class="arch-node" style="min-width:90px; padding:0.5rem">
+        <div style="font-size:0.65rem; font-weight:600;">Hotel D</div>
+        <div style="font-size:0.6rem; color:var(--accent4)">✗ Timeout</div>
+      </div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head">▶</div>
+      <div class="arrow-label">filter + rank</div>
+    </div>
+    <div class="arch-node" style="border-color:rgba(99,102,241,0.4)">
+      <div class="arch-node-icon">🧮</div>
+      <div class="arch-node-label">Trust Sort</div>
+      <div class="arch-node-sub">Score + price</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head">▶</div>
+      <div class="arrow-label">&lt;800ms total</div>
+    </div>
+    <div class="arch-node" style="border-color:rgba(0,212,170,0.4)">
+      <div class="arch-node-icon">📱</div>
+      <div class="arch-node-label">Receptionist</div>
+      <div class="arch-node-sub">3 options shown</div>
+    </div>
+  </div>
+  <div style="text-align:center; font-size:0.7rem; color:var(--text-dim); margin-top:0.5rem">
+    Synchronous = 5 × 200ms = <strong style="color:var(--accent4)">1,000ms</strong> &nbsp;|&nbsp; 
+    Async fanout = max(200ms) = <strong style="color:var(--green)">200ms wall time</strong> &nbsp;|&nbsp;
+    Hotel D timeout = <strong style="color:var(--text-dim)">ignored, not blocking</strong>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Corridor Expansion -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#f59e0b"></div> Module 7 — Digital Tourist Corridor</div>
+    <h2>Expansion Sequence</h2>
+    <div class="corridor-stage">
+      <div class="cs-stage-badge" style="background:rgba(16,185,129,0.15);color:#10b981">Stage 1</div>
+      <div>
+        <div class="cs-title">Hotel ↔ Hotel (Now)</div>
+        <div class="cs-desc">Pure referral network. The foundational trust layer. Months 1–12.</div>
+      </div>
+    </div>
+    <div class="corridor-stage">
+      <div class="cs-stage-badge" style="background:rgba(59,130,246,0.15);color:#3b82f6">Stage 2</div>
+      <div>
+        <div class="cs-title">Hotel → Transfer (Month 12–18)</div>
+        <div class="cs-desc">Jiren Ride + Ride Ethiopia integration. Transfer offered at referral confirmation. 5% corridor commission.</div>
+      </div>
+    </div>
+    <div class="corridor-stage">
+      <div class="cs-stage-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">Stage 3</div>
+      <div>
+        <div class="cs-title">Hotel → Tour Guide (Month 18–24)</div>
+        <div class="cs-desc">ETO-certified guide database. Subscription model (not commission) for guide quality alignment.</div>
+      </div>
+    </div>
+    <div class="corridor-stage">
+      <div class="cs-stage-badge" style="background:rgba(99,102,241,0.15);color:#6366f1">Stage 4</div>
+      <div>
+        <div class="cs-title">Tourist Corridor API (Month 24+)</div>
+        <div class="cs-desc">Unified public API: hotel + guide + transport packages. Lodge-Link becomes Ethiopian tourism infrastructure.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MVP Checklist -->
+  <div class="card">
+    <div class="card-label"><div class="card-label-dot" style="background:#10b981"></div> Module 8 — Phase 1 MVP Checklist</div>
+    <h2>Critical Launch Tasks</h2>
+    <ul class="checklist">
+      <li><span class="check">▶</span> PostgreSQL multi-tenancy: shared platform schema + private hotel schemas</li>
+      <li><span class="check">▶</span> FastAPI async fanout with 3s hard timeout per hotel check</li>
+      <li><span class="check warn">▶</span> API key SHA-256 hashing — plaintext keys never stored</li>
+      <li><span class="check warn">▶</span> Row-Level Security (RLS) activated on all private tables</li>
+      <li><span class="check warn">▶</span> HMAC-signed offline handshake code generation</li>
+      <li><span class="check sec">▶</span> JWT auth: 15-min access token + 7-day refresh</li>
+      <li><span class="check sec">▶</span> Celery + Redis webhook queue with exponential backoff</li>
+      <li><span class="check sec">▶</span> SMS gateway (AfricasTalking) for every referral notification</li>
+      <li><span class="check">▶</span> PWA offline cache: last 50 pending referrals (IndexedDB)</li>
+      <li><span class="check">▶</span> Amharic + English UI (Noto Sans Ethiopic)</li>
+      <li><span class="check">▶</span> Emergency referral mode: 3-tap UI (&lt;10 seconds)</li>
+      <li><span class="check warn">▶</span> KYC document flow + manual admin review queue</li>
+    </ul>
+    <div style="display:flex; gap:0.5rem; margin-top:1rem; font-size:0.65rem">
+      <span style="color:var(--accent)">▶ Infrastructure</span>
+      <span style="color:var(--accent2)">▶ Security</span>
+      <span style="color:var(--accent3)">▶ Resilience</span>
+    </div>
+  </div>
+</div>
+
+<!-- Stack Summary -->
+<div class="card">
+  <div class="section-header">
+    <div class="section-num">APPENDIX A</div>
+    <div class="section-title">Full Technology Stack</div>
+  </div>
+  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem">
+    <div>
+      <div style="font-size:0.65rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem">Backend</div>
+      <div class="tag-list">
+        <span class="tag">FastAPI 0.111+</span>
+        <span class="tag">Python 3.11</span>
+        <span class="tag">Pydantic v2</span>
+        <span class="tag">SQLAlchemy async</span>
+        <span class="tag">Alembic</span>
+        <span class="tag">Uvicorn + Gunicorn</span>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.65rem; color:var(--accent2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem">Data & Queue</div>
+      <div class="tag-list">
+        <span class="tag">PostgreSQL 16</span>
+        <span class="tag">PostGIS</span>
+        <span class="tag">Redis 7</span>
+        <span class="tag">Celery</span>
+        <span class="tag">pgcrypto</span>
+        <span class="tag">Kafka (Phase 3)</span>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.65rem; color:var(--accent3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem">Frontend & Mobile</div>
+      <div class="tag-list">
+        <span class="tag">React + Next.js</span>
+        <span class="tag">PWA + IndexedDB</span>
+        <span class="tag">Service Worker</span>
+        <span class="tag">react-i18next</span>
+        <span class="tag">Noto Sans Ethiopic</span>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.65rem; color:var(--green); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem">Infrastructure & AI</div>
+      <div class="tag-list">
+        <span class="tag">AWS ECS Fargate</span>
+        <span class="tag">AWS RDS Multi-AZ</span>
+        <span class="tag">AfricasTalking SMS</span>
+        <span class="tag">XGBoost (Phase 2)</span>
+        <span class="tag">PyTorch LSTM (Phase 4)</span>
+        <span class="tag">MLflow</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Lodge-Link Implementation Blueprint v1.0 &nbsp;·&nbsp; Confidential Internal Architecture Document &nbsp;·&nbsp; Ethiopian Hospitality & Tourism Sector
+</footer>
+
+</body>
+</html>
