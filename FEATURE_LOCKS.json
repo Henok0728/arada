@@ -94,10 +94,10 @@
     },
     "frontend_pwa_offline": {
       "description": "Service Worker setup, IndexedDB cache for 50 referrals, offline banner, local code validation",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "antigravity-frontend",
+      "branch": "phase1/pwa-offline",
+      "claimed_at": "2026-05-15T00:52:00Z",
       "released_at": null,
       "plan_ref": "Module 6 § 6.2 — Offline Handshake"
     },
