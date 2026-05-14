@@ -8,17 +8,10 @@ Order matters: parent models (Hotel) before child models (User, Referral, APIKey
 to avoid import-time circular dependency issues.
 """
 from app.db.base import Base  # noqa: F401 — needed for Base.metadata
-<<<<<<< HEAD
-from app.db.models.api_key import ENV_DEV, ENV_LIVE, VALID_SCOPES, APIKey  # noqa: F401
-from app.db.models.hotel import Hotel, HotelCategory, HotelStatus  # noqa: F401
-from app.db.models.referral import Referral, ReferralStatus, RoomType  # noqa: F401
-from app.db.models.user import User, UserRole  # noqa: F401
-=======
 from app.db.models.hotel import Hotel, HotelCategory, HotelStatus  # noqa: F401
 from app.db.models.user import User, UserRole  # noqa: F401
 from app.db.models.api_key import APIKey, ENV_DEV, ENV_LIVE, VALID_SCOPES  # noqa: F401
 from app.db.models.referral import Referral, ReferralStatus, RoomType  # noqa: F401
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 __all__ = [
     "Base",

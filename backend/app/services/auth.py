@@ -26,13 +26,8 @@ API Key format (CLAUDE.md §Key API Patterns):
 import hashlib
 import secrets
 import string
-<<<<<<< HEAD
-from datetime import UTC, datetime, timedelta
-from typing import Any
-=======
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -105,17 +100,10 @@ def _build_token(
     subject: str,
     token_type: str,
     expires_delta: timedelta,
-<<<<<<< HEAD
-    extra_claims: dict[str, Any] | None = None,
-) -> str:
-    """Internal helper — encode a JWT with standard + custom claims."""
-    now = datetime.now(UTC)
-=======
     extra_claims: Optional[dict[str, Any]] = None,
 ) -> str:
     """Internal helper — encode a JWT with standard + custom claims."""
     now = datetime.now(timezone.utc)
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
     payload: dict[str, Any] = {
         "sub": subject,          # Subject (user UUID as string)
         "type": token_type,      # "access" or "refresh"
@@ -131,15 +119,9 @@ def _build_token(
 def create_access_token(
     subject: str,
     *,
-<<<<<<< HEAD
-    hotel_id: str | None = None,
-    role: str | None = None,
-    expires_delta: timedelta | None = None,
-=======
     hotel_id: Optional[str] = None,
     role: Optional[str] = None,
     expires_delta: Optional[timedelta] = None,
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 ) -> str:
     """Create a short-lived JWT access token.
 
@@ -165,11 +147,7 @@ def create_access_token(
 def create_refresh_token(
     subject: str,
     *,
-<<<<<<< HEAD
-    expires_delta: timedelta | None = None,
-=======
     expires_delta: Optional[timedelta] = None,
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 ) -> str:
     """Create a long-lived JWT refresh token.
 
@@ -277,11 +255,7 @@ def generate_api_key(environment: str) -> tuple[str, str, str]:
     Raises:
         ValueError: If environment is not "dev" or "live".
     """
-<<<<<<< HEAD
-    from app.db.models.api_key import ENV_DEV, ENV_LIVE, KEY_PREFIX_MAP
-=======
     from app.db.models.api_key import KEY_PREFIX_MAP, ENV_DEV, ENV_LIVE
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
     if environment not in (ENV_DEV, ENV_LIVE):
         raise ValueError(

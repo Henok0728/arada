@@ -16,11 +16,7 @@ so the DB is left clean. No need to truncate tables between tests.
 """
 import os
 import uuid
-<<<<<<< HEAD
-from collections.abc import AsyncGenerator
-=======
 from typing import AsyncGenerator
->>>>>>> 8fb6c50cbe91c572732551f6fce39594ea0d8dc1
 
 import pytest
 import pytest_asyncio
