@@ -79,7 +79,8 @@ async def register_hotel(
         email=req.admin_email,
         country_code=req.country_code.upper(),
         status=HotelStatus.PENDING_KYC,
-        location=location_wkt,
+        latitude=req.latitude,
+        longitude=req.longitude,
     )
     hotel = await hotel_repo.create(hotel)
 
