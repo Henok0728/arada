@@ -13,8 +13,11 @@ async def wait_for_db():
     # Standardize for SQLAlchemy
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
-    elif not url.startswith("postgresql+asyncpg://"):
+    elif url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    elif not url.startswith("postgresql+asyncpg://"):
+        # Fallback if somehow it's just the host
+        url = f"postgresql+asyncpg://{url}"
         
     print(f"Connecting to database...")
     engine = create_async_engine(url)
