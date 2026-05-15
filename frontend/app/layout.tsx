@@ -1,5 +1,6 @@
 import './globals.css';
 import I18nProvider from '../components/I18nProvider';
+import RedirectGuard from '../components/RedirectGuard';
 
 export const metadata = {
   title: "Lodge-Link | You're Full Tonight. Your Guest Doesn't Have to Leave.",
@@ -17,6 +18,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>
       <body className="antialiased selection:bg-[#00d4aa]/30 selection:text-[#00d4aa]">
+        <RedirectGuard />
         <I18nProvider>
           {children}
         </I18nProvider>
