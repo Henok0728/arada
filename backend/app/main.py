@@ -20,7 +20,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Hard-override for hackathon demo
+    allow_origins=[
+        "http://localhost:3000",
+        "https://arada-rho.vercel.app",
+        "https://arada.vercel.app",
+        "https://arada-faqzwaex5-eyob2ones-projects.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

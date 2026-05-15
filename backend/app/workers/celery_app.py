@@ -8,7 +8,7 @@ celery_app = Celery(
     "lodge_link_workers",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.workers.tasks"]
+    include=["app.workers.tasks", "app.workers.email_tasks"]
 )
 
 celery_app.conf.update(

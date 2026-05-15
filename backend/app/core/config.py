@@ -24,7 +24,13 @@ class Settings(BaseSettings):
     API_KEY_HASH_ALGORITHM: str = "sha256"
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "https://arada-rho.vercel.app",
+        "https://arada.vercel.app",
+        "https://arada-faqzwaex5-eyob2ones-projects.vercel.app",
+
+    ]
 
     # SMS Gateway (AfricasTalking)
     AT_USERNAME: str = ""
@@ -54,7 +60,7 @@ class Settings(BaseSettings):
 
         # Redis URL safety check
         if not self.REDIS_URL or not any(self.REDIS_URL.startswith(s) for s in ["redis://", "rediss://", "unix://"]):
-            # Fallback for demo if REDIS_URL is malformed or empty in Railway
+            # Fallback for demo if REDIS_URL is malformed or empty
             self.REDIS_URL = "redis://localhost:6379/0"
 
 
