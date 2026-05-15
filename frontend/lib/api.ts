@@ -4,7 +4,10 @@
  * Token management, 401 handling, and error normalisation are centralised here.
  */
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+let BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+if (!BASE.startsWith('http')) {
+  BASE = `https://${BASE}`;
+}
 
 // ── TypeScript Interfaces ──────────────────────────────────────────────────
 
