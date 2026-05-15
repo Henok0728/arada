@@ -3,7 +3,7 @@ builder = "dockerfile"
 dockerfilePath = "infrastructure/docker/Dockerfile.backend"
 
 [deploy]
-startCommand = "sh -c 'until pg_isready -h ${PGHOST:-localhost} -p ${PGPORT:-5432}; do echo waiting for database...; sleep 2; done; alembic upgrade head && python -m scripts.seed_demo_data && uvicorn app.main:app --host 0.0.0.0 --port $PORT'"
+startCommand = "sh -c 'python scripts/wait_for_db.py && alembic upgrade head && python -m scripts.seed_demo_data && uvicorn app.main:app --host 0.0.0.0 --port $PORT'"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"

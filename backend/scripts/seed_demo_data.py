@@ -19,8 +19,11 @@ except ImportError:
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/lodge_link",
-).replace("postgresql+asyncpg://", "postgresql://")
+    "postgresql://postgres:postgres@localhost:5432/lodge_link",
+)
+# asyncpg needs postgresql:// or postgres://. Standardize for safety.
+if "postgresql+asyncpg://" in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 
 
 DEMO_HOTELS = [
