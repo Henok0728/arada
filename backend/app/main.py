@@ -22,16 +22,23 @@ app.add_middleware(
 
 # 2. Manual Header Injection (The Safety Net)
 @app.middleware("http")
-async def add_cors_header(request: Request, call_next):
+async def force_cors_headers(request: Request, call_next):
+    # Handle preflight OPTIONS requests manually for reliability
     if request.method == "OPTIONS":
         from fastapi.responses import Response
-        return Response(status_code=204, headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        })
+        return Response(
+            status_code=204,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+            },
+        )
+    
     response = await call_next(request)
     response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
     return response
 
 # Router imports
