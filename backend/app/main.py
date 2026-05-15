@@ -10,49 +10,37 @@ from sqlalchemy import text
 
 from app.core.config import settings
 
+# Initialize FastAPI with redirect_slashes=False to prevent CORS header stripping on redirects.
 app = FastAPI(
     title="Lodge-Link API",
     description="B2B Hotel Referral Switch Middleware — Ethiopian Hospitality Sector",
     version="0.1.0",
     docs_url="/api/docs" if settings.ENVIRONMENT != "production" else None,
     redoc_url="/api/redoc" if settings.ENVIRONMENT != "production" else None,
+    redirect_slashes=False,
+)
+
+# CORSMiddleware must be initialized IMMEDIATELY after app and BEFORE any routers.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ---------------------------------------------------------------------------
-# Forced CORS Middleware (Hackathon Emergency Mode)
-# ---------------------------------------------------------------------------
-@app.middleware("http")
-async def force_cors_middleware(request, call_next):
-    # Handle preflight OPTIONS requests directly
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        return Response(
-            status_code=200,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Headers": "*",
-            },
-        )
-    
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
-
-@app.get("/")
-async def root():
-    return {"message": "Lodge-Link API is running. Visit /health for status."}
-
-# ---------------------------------------------------------------------------
 # Router imports — all Phase 1 routes registered here.
-# To add a new feature: create app/api/v1/<feature>.py, import here, register.
 # ---------------------------------------------------------------------------
 from app.api.v1.auth import router as auth_router
 from app.api.v1.availability import router as availability_router
 from app.api.v1.handshake import router as handshake_router
 from app.api.v1.referrals import router as referrals_router
+
+
+@app.get("/", tags=["System"])
+async def root():
+    return {"message": "Lodge-Link API is running. Visit /health for status."}
 
 
 @app.get("/health", tags=["System"])
@@ -91,31 +79,27 @@ async def status_check():
 
     return result
 
-# Auth — POST /v1/auth/register, /v1/auth/token
+# Register routers AFTER middleware
 app.include_router(
     auth_router,
     prefix="/v1/auth",
     tags=["Authentication"],
 )
 
-# Availability — GET/POST /v1/hotels/availability
 app.include_router(
     availability_router,
     prefix="/v1/hotels",
     tags=["Availability"],
 )
 
-# Handshake — POST /v1/handshake/generate, /v1/handshake/verify
 app.include_router(
     handshake_router,
     prefix="/v1/handshake",
     tags=["Handshake"],
 )
 
-# Referral Fan-out — POST /v1/referrals, GET /v1/referrals/{session_id}
 app.include_router(
     referrals_router,
     prefix="/v1/referrals",
     tags=["Referrals"],
 )
-
