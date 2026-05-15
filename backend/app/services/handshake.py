@@ -60,14 +60,20 @@ async def generate_handshake(
     await db.commit()
     
     # Cache in Redis for fast lookup (15 mins = 900 seconds)
-    cache_key = f"handshake:{referral_id}"
-    await redis.setex(cache_key, 900, hashed_code)
+    try:
+        cache_key = f"handshake:{referral_id}"
+        await redis.setex(cache_key, 900, hashed_code)
+    except Exception as e:
+        logger.error(f"Failed to cache handshake in Redis: {e}")
     
     # Send SMS if phone number provided
     if phone_number:
         message = f"Your Lodge-Link Handshake Code is: {code}. Show this at the hotel reception."
-        # Call Celery task asynchronously
-        send_sms_task.delay(phone_number, message)
+        # Call Celery task asynchronously (fails gracefully if Redis is down)
+        try:
+            send_sms_task.delay(phone_number, message)
+        except Exception as e:
+            logger.error(f"Failed to queue handshake SMS: {e}")
         
     return code
 

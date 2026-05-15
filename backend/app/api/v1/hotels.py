@@ -29,7 +29,10 @@ async def submit_kyc(
     # In a real system, we'd upload these to S3 and store the URLs in JSONB metadata
     
     # Queue email task
-    send_kyc_submitted_email.delay(hotel.email, hotel.name)
+    try:
+        send_kyc_submitted_email.delay(hotel.email, hotel.name)
+    except Exception as e:
+        print(f"Failed to queue KYC email: {e}")
     
     await db.commit()
     

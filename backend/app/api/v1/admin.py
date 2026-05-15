@@ -107,8 +107,11 @@ async def approve_kyc(
     
     await db.commit()
     
-    # Send email
-    send_kyc_approval_email.delay(hotel.email, hotel.name)
+    # Send email (fails gracefully if Redis is down)
+    try:
+        send_kyc_approval_email.delay(hotel.email, hotel.name)
+    except Exception as e:
+        print(f"Failed to queue approval email: {e}")
     
     return KycApproveResponse(live_api_key=plaintext_key)
 
@@ -130,10 +133,12 @@ async def reject_kyc(
     db.add(audit_log)
     await db.commit()
     
-    # Send rejection email
-    hotel = await db.get(Hotel, hotel_id)
+    # Send rejection email (fails gracefully if Redis is down)
     if hotel:
-        send_kyc_rejection_email.delay(hotel.email, hotel.name, req.reason)
+        try:
+            send_kyc_rejection_email.delay(hotel.email, hotel.name, req.reason)
+        except Exception as e:
+            print(f"Failed to queue rejection email: {e}")
         
     return {"status": "rejected"}
 

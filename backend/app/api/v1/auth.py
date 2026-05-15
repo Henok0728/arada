@@ -133,8 +133,11 @@ async def register_hotel(
 
     # session.py commits on clean exit — no explicit commit needed.
     
-    # Send welcome email asynchronously
-    send_welcome_email.delay(req.admin_email, req.hotel_name)
+    # Send welcome email asynchronously (fails gracefully if Redis is down)
+    try:
+        send_welcome_email.delay(req.admin_email, req.hotel_name)
+    except Exception as e:
+        print(f"Failed to queue welcome email: {e}")
 
     return RegisterResponse(
         hotel={
