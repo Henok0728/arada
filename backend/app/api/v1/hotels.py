@@ -12,15 +12,17 @@ router = APIRouter()
 
 @router.post("/kyc/submit")
 async def submit_kyc(
-    business_registration_cert: UploadFile = File(None),
+    business_registration_cert: UploadFile = File(...),
     tin_number: str = Form(None),
     eto_license: UploadFile = File(None),
-    manager_id: UploadFile = File(None),
+    manager_id: UploadFile = File(...),
     physical_address: str = Form(None),
     gps_coordinates: str = Form(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session)
 ):
+    if not business_registration_cert or not manager_id:
+        raise HTTPException(status_code=400, detail="Business registration certificate and Manager ID are required")
     hotel = await db.get(Hotel, current_user.hotel_id)
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel not found")

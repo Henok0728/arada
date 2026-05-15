@@ -61,6 +61,7 @@ export default function OnboardingPage() {
       }, false, false); // isFormData = false, requireAuth = false
       
       localStorage.setItem('ll_token', res.access_token);
+      localStorage.setItem('ll_is_admin', 'false'); // Hotel admins are not platform admins
       setSandboxKey(res.sandbox_key);
       setNextSteps(res.next_steps);
       setStep(3); // Go to KYC upload
@@ -72,11 +73,16 @@ export default function OnboardingPage() {
   };
 
   const submitKyc = async () => {
+    if (!documents.cert || !documents.id) {
+      alert("Please upload both the Business Certificate and Manager ID.");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
-      if (documents.cert) formData.append('business_registration_cert', documents.cert);
-      if (documents.id) formData.append('manager_id', documents.id);
+      formData.append('business_registration_cert', documents.cert);
+      formData.append('manager_id', documents.id);
       
       await apiCall('/v1/hotels/kyc/submit', {
         method: 'POST',
@@ -86,7 +92,8 @@ export default function OnboardingPage() {
       setStep(4);
     } catch (err: any) {
       console.error(err);
-      // For demo purposes, we will just proceed to step 4 if fetch fails due to form data serialization issues.
+      // Even if fetch fails, for demo we proceed but alert the user
+      alert(`Submission note: ${err.message || "Document size might be too large for this demo environment."}`);
       setStep(4);
     } finally {
       setLoading(false);
@@ -185,14 +192,16 @@ export default function OnboardingPage() {
               <p className="text-sm text-slate-400 mb-6">Upload documents to verify your business and unlock live API keys.</p>
               
               <div className="grid grid-cols-2 gap-4">
-                <div className="border border-slate-800 bg-slate-950 rounded-xl p-6 text-center cursor-pointer hover:border-teal-500 transition-colors">
-                  <div className="text-2xl mb-2">📄</div>
-                  <div className="text-xs text-slate-400 uppercase">Business Cert</div>
-                </div>
-                <div className="border border-slate-800 bg-slate-950 rounded-xl p-6 text-center cursor-pointer hover:border-teal-500 transition-colors">
-                  <div className="text-2xl mb-2">🆔</div>
-                  <div className="text-xs text-slate-400 uppercase">Manager ID</div>
-                </div>
+                <label className={`border border-slate-800 bg-slate-950 rounded-xl p-6 text-center cursor-pointer hover:border-teal-500 transition-colors ${documents.cert ? 'border-teal-500/50' : ''}`}>
+                  <input type="file" className="hidden" onChange={e => setDocuments({...documents, cert: e.target.files?.[0]})} />
+                  <div className="text-2xl mb-2">{documents.cert ? '✅' : '📄'}</div>
+                  <div className="text-xs text-slate-400 uppercase truncate px-2">{documents.cert ? documents.cert.name : 'Business Cert'}</div>
+                </label>
+                <label className={`border border-slate-800 bg-slate-950 rounded-xl p-6 text-center cursor-pointer hover:border-teal-500 transition-colors ${documents.id ? 'border-teal-500/50' : ''}`}>
+                  <input type="file" className="hidden" onChange={e => setDocuments({...documents, id: e.target.files?.[0]})} />
+                  <div className="text-2xl mb-2">{documents.id ? '✅' : '🆔'}</div>
+                  <div className="text-xs text-slate-400 uppercase truncate px-2">{documents.id ? documents.id.name : 'Manager ID'}</div>
+                </label>
               </div>
               
               {step === 3 && (
