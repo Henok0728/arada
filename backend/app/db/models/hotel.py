@@ -114,6 +114,16 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         comment="Whether this hotel participates in the referral network"
     )
 
+    # ---- Platform Admin & Billing ---------------------------------------
+    is_platform_admin: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False,
+        comment="True if this is a platform admin account, not a real hotel"
+    )
+    plan_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), nullable=True,
+        comment="FK to platform.plans"
+    )
+
     # ---- Relationships --------------------------------------------------
     users: Mapped[List["User"]] = relationship(
         "User", back_populates="hotel", cascade="all, delete-orphan"

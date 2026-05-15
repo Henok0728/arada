@@ -46,23 +46,13 @@ class HotelRegisterRequest(BaseModel):
 
 
 class RegisterResponse(BaseModel):
-    """
-    Returned ONCE at registration. The api_key field will NEVER be shown again.
-    Tell the user to copy it now.
-    """
-    hotel_id: uuid.UUID
-    user_id: uuid.UUID
-    api_key: str = Field(
-        description="SHOW ONCE — the plaintext API key. Store it securely now."
-    )
-    api_key_prefix: str = Field(
-        description="First 16 chars — safe to display later for identification."
-    )
+    hotel: dict
+    sandbox_key: str
+    kyc_status: str
+    next_steps: List[str]
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    message: str = "Registration successful. Store your API key — it will not be shown again."
-
 
 # ---------------------------------------------------------------------------
 # Login
@@ -79,4 +69,9 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    expires_in: int = Field(description="Access token TTL in seconds")
+    expires_in: int
+    hotel_id: uuid.UUID
+    display_name: str
+    kyc_status: str
+    is_platform_admin: bool
+    plan_name: str

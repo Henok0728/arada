@@ -12,6 +12,8 @@ from app.db.models.hotel import Hotel, HotelCategory, HotelStatus  # noqa: F401
 from app.db.models.user import User, UserRole  # noqa: F401
 from app.db.models.api_key import APIKey, ENV_DEV, ENV_LIVE, VALID_SCOPES  # noqa: F401
 from app.db.models.referral import Referral, ReferralStatus, RoomType  # noqa: F401
+from app.db.models.plan import Plan  # noqa: F401
+from app.db.models.audit_log import AuditLog  # noqa: F401
 
 __all__ = [
     "Base",
@@ -31,4 +33,8 @@ __all__ = [
     "Referral",
     "ReferralStatus",
     "RoomType",
+    # Plan
+    "Plan",
+    # Audit Log
+    "AuditLog",
 ]

@@ -155,11 +155,15 @@ async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
   requireAuth = true,
+  isFormData = false
 ): Promise<T | ApiError> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
+  
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (requireAuth) {
     const token = getToken();
@@ -305,3 +309,9 @@ export async function getHealth(): Promise<SystemStatus | ApiError> {
 export function isApiError(r: unknown): r is ApiError {
   return typeof r === 'object' && r !== null && 'error' in r;
 }
+
+export const apiCall = async (path: string, options: RequestInit = {}, isFormData: boolean = false) => {
+  const result = await apiFetch<any>(path, options, true, isFormData);
+  if (isApiError(result)) throw new Error(result.error);
+  return result;
+};

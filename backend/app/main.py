@@ -34,6 +34,8 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.availability import router as availability_router
 from app.api.v1.handshake import router as handshake_router
 from app.api.v1.referrals import router as referrals_router
+from app.api.v1.admin import router as admin_router
+from app.api.v1.hotels import router as hotels_router
 
 
 @app.get("/health", tags=["System"])
@@ -86,6 +88,13 @@ app.include_router(
     tags=["Availability"],
 )
 
+# Hotels — POST /v1/hotels/kyc/submit
+app.include_router(
+    hotels_router,
+    prefix="/v1/hotels",
+    tags=["Hotels"],
+)
+
 # Handshake — POST /v1/handshake/generate, /v1/handshake/verify
 app.include_router(
     handshake_router,
@@ -98,5 +107,12 @@ app.include_router(
     referrals_router,
     prefix="/v1/referrals",
     tags=["Referrals"],
+)
+
+# Admin Dashboard — GET /v1/admin/*
+app.include_router(
+    admin_router,
+    prefix="/v1/admin",
+    tags=["Admin"],
 )
 
