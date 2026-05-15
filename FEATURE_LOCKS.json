@@ -76,21 +76,48 @@
     },
     "frontend_availability_grid": {
       "description": "Visual room availability toggle grid for dashboard-tier hotels",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "antigravity-final-1",
+      "branch": "phase1/final-integration",
+      "claimed_at": "2026-05-15T15:13:21Z",
       "released_at": null,
       "plan_ref": "Module 2 § 2.1 — Level 3 Dashboard"
     },
     "frontend_onboarding_kyc": {
       "description": "Hotel KYC registration flow, document upload, sandbox activation screen",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "antigravity-final-1",
+      "branch": "phase1/final-integration",
+      "claimed_at": "2026-05-15T15:13:21Z",
       "released_at": null,
       "plan_ref": "Module 2 § 2.3 — KYC Requirements"
+    },
+    "frontend_dashboard_core": {
+      "description": "Hotel dashboard main page, room status, referral inbox, real-time 10s auto-refresh, trust score display",
+      "status": "claimed",
+      "agent_id": "antigravity-final-1",
+      "branch": "phase1/final-integration",
+      "claimed_at": "2026-05-15T15:13:21Z",
+      "released_at": null,
+      "plan_ref": "Module 4 § 4.2 — Receptionist UI"
+    },
+    "integration_api_client": {
+      "description": "Typed API client (api.ts), auth token interceptor, React Query hooks for all Phase 1 endpoints",
+      "status": "claimed",
+      "agent_id": "antigravity-final-1",
+      "branch": "phase1/final-integration",
+      "claimed_at": "2026-05-15T15:13:21Z",
+      "released_at": null,
+      "plan_ref": "Module 1 § 1.1 — FastAPI Backend"
+    },
+    "deployment_seed_and_config": {
+      "description": "backend/scripts/seed_demo_data.py, railway.toml, vercel.json, env templates, /status and /health routes",
+      "status": "claimed",
+      "agent_id": "antigravity-final-1",
+      "branch": "phase1/final-integration",
+      "claimed_at": "2026-05-15T15:13:21Z",
+      "released_at": null,
+      "plan_ref": "Module 8 — Phase 1 Infrastructure"
     },
     "frontend_pwa_offline": {
       "description": "Service Worker setup, IndexedDB cache for 50 referrals, offline banner, local code validation",
