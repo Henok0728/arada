@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginHotel, isApiError, getToken } from '../../lib/api';
+import { loginHotel, registerHotel, isApiError, getToken } from '../../lib/api';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -14,6 +14,8 @@ export default function OnboardingPage() {
   // Step 1
   const [hotelName, setHotelName] = useState('');
   const [city, setCity] = useState('Addis Ababa');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   
   // Step 2
   const [tinFile, setTinFile] = useState<File | null>(null);
@@ -31,9 +33,33 @@ export default function OnboardingPage() {
 
   const completeOnboarding = async () => {
     setLoading(true);
-    // Simulate real KYC ingestion & Sandbox key generation
-    await new Promise(r => setTimeout(r, 1500));
-    setApiKey('sk_test_lodge_' + Math.random().toString(36).substr(2, 9));
+    
+    const payload = {
+      hotel_name: hotelName,
+      hotel_slug: hotelName.toLowerCase().replace(/\s+/g, '-'),
+      city: city,
+      address: 'Addis Ababa, Ethiopia',
+      phone_number: '+251 900 000 000', // Default for demo
+      admin_email: adminEmail,
+      admin_full_name: hotelName + ' Admin',
+      admin_password: adminPassword,
+    };
+
+    const res = await registerHotel(payload);
+    
+    if (isApiError(res)) {
+      alert(`Registration failed: ${res.error}`);
+      setLoading(false);
+      return;
+    }
+
+    // Store hotel_id for the dashboard polling
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ll_hotel_id', res.hotel_id);
+      localStorage.setItem('ll_hotel_type', 'B'); // Default for demo
+    }
+
+    setApiKey(res.api_key);
     setStep(4);
     setLoading(false);
   };
@@ -65,11 +91,19 @@ export default function OnboardingPage() {
                   <input value={hotelName} onChange={e => setHotelName(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#00d4aa] transition-all" placeholder="e.g. Skyline International Addis" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-white/30 mb-2 uppercase tracking-[0.3em]">Primary Operation City</label>
-                  <input value={city} onChange={e => setCity(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#00d4aa] transition-all" placeholder="Addis Ababa" />
+                  <label className="block text-[10px] font-black text-white/30 mb-2 uppercase tracking-[0.3em]">Admin Email</label>
+                  <input value={adminEmail} onChange={e => setAdminEmail(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#00d4aa] transition-all" placeholder="admin@hotel.com" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 mb-2 uppercase tracking-[0.3em]">Admin Password</label>
+                  <input type="password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#00d4aa] transition-all" placeholder="••••••••" />
                 </div>
                 {step === 1 && (
-                  <button onClick={() => hotelName && setStep(2)} disabled={!hotelName} className="w-full mt-4 bg-white text-[#070b12] font-black text-xs uppercase tracking-widest py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all">
+                  <button 
+                    onClick={() => hotelName && adminEmail && adminPassword && setStep(2)} 
+                    disabled={!hotelName || !adminEmail || !adminPassword} 
+                    className="w-full mt-4 bg-white text-[#070b12] font-black text-xs uppercase tracking-widest py-5 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
                     Continue to Verification
                   </button>
                 )}

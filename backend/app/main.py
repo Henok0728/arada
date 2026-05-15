@@ -56,6 +56,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.availability import router as availability_router
 from app.api.v1.handshake import router as handshake_router
 from app.api.v1.referrals import router as referrals_router
+from app.api.v1.admin import router as admin_router
 
 @app.get("/")
 async def root():
@@ -66,10 +67,11 @@ async def health_check():
     return {"status": "ok"}
 
 # Include routers AFTER middleware
-app.include_router(auth_router, prefix="/v1/auth", tags=["Authentication"])
+app.include_router(auth_router, prefix="/v1/auth", tags=["Auth"])
 app.include_router(availability_router, prefix="/v1/hotels", tags=["Availability"])
-app.include_router(handshake_router, prefix="/v1/handshake", tags=["Handshake"])
 app.include_router(referrals_router, prefix="/v1/referrals", tags=["Referrals"])
+app.include_router(handshake_router, prefix="/v1/handshake", tags=["Handshake"])
+app.include_router(admin_router, prefix="/v1/admin", tags=["Admin"])
 
 @app.get("/status")
 async def status_check():
