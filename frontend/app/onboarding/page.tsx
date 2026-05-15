@@ -33,12 +33,22 @@ export default function OnboardingPage() {
   const handleRegister = async () => {
     setLoading(true);
     try {
+      // Normalize phone number to E.164 (Ethiopia default)
+      let normalizedPhone = phone.trim();
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '+251' + normalizedPhone.substring(1);
+      } else if (normalizedPhone.startsWith('9')) {
+        normalizedPhone = '+251' + normalizedPhone;
+      } else if (!normalizedPhone.startsWith('+')) {
+        normalizedPhone = '+' + normalizedPhone;
+      }
+
       const payload = {
         hotel_name: hotelName,
         hotel_slug: hotelSlug || hotelName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         city: city,
         address: address || `${city} Main Road`,
-        phone_number: phone,
+        phone_number: normalizedPhone,
         country_code: "ET",
         admin_email: email,
         admin_full_name: `${hotelName} Admin`,

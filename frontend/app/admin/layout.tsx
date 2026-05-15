@@ -1,11 +1,31 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { getToken } from '@/lib/api';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = getToken();
+    const isAdmin = localStorage.getItem('ll_is_admin') === 'true';
+
+    if (!token || !isAdmin) {
+      if (pathname !== '/admin/login') {
+        router.push('/admin/login');
+      }
+    } else {
+      setIsAuthorized(true);
+    }
+  }, [pathname, router]);
+
+  if (!isAuthorized && pathname !== '/admin/login') {
+    return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-500">Authenticating...</div>;
+  }
 
   const navItems = [
     { name: 'Dashboard', href: '/admin' },

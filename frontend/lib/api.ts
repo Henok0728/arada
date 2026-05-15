@@ -60,6 +60,11 @@ export interface TokenResponse {
   refresh_token: string;
   token_type: string;
   expires_in: number;
+  hotel_id: string;
+  display_name: string;
+  kyc_status: string;
+  is_platform_admin: boolean;
+  plan_name: string;
 }
 
 export interface RoomAvailability {
@@ -154,6 +159,7 @@ export function clearAuth(): void {
   localStorage.removeItem('ll_token');
   localStorage.removeItem('ll_hotel_type');
   localStorage.removeItem('ll_hotel_id');
+  localStorage.removeItem('ll_is_admin');
 }
 
 // ── Core fetch wrapper ─────────────────────────────────────────────────────
@@ -219,6 +225,9 @@ export async function loginHotel(email: string, password: string): Promise<Token
 
   if ('access_token' in result) {
     setToken(result.access_token);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ll_is_admin', String(result.is_platform_admin));
+    }
   }
   return result;
 }
