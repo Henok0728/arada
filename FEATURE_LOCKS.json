@@ -58,20 +58,20 @@
     },
     "frontend_landing_page": {
       "description": "Marketing landing page, English + Amharic, mobile-first, conversion CTA",
-      "status": "claimed",
+      "status": "released",
       "agent_id": "antigravity-frontend-1",
       "branch": "phase1/frontend-core",
       "claimed_at": "2026-05-15T14:22:01Z",
-      "released_at": null,
+      "released_at": "2026-05-15T14:51:13Z",
       "plan_ref": "Module 4 § 4.1 — Landing Page"
     },
     "frontend_emergency_referral_ui": {
       "description": "3-tap Emergency Referral Mode, results list, trust score display",
-      "status": "claimed",
+      "status": "released",
       "agent_id": "antigravity-frontend-1",
       "branch": "phase1/frontend-core",
       "claimed_at": "2026-05-15T14:22:01Z",
-      "released_at": null,
+      "released_at": "2026-05-15T14:51:13Z",
       "plan_ref": "Module 4 § 4.2 — Receptionist UI"
     },
     "frontend_availability_grid": {
