@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.core.config import settings
@@ -10,15 +10,29 @@ app = FastAPI(
     redirect_slashes=False
 )
 
-# GLOBAL CATCH-ALL CORS (Must be the FIRST middleware)
+# 1. Standard CORS Middleware (FIRST)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+# 2. Manual Header Injection (The Safety Net)
+@app.middleware("http")
+async def add_cors_header(request: Request, call_next):
+    if request.method == "OPTIONS":
+        from fastapi.responses import Response
+        return Response(status_code=204, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        })
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    return response
 
 # Router imports
 from app.api.v1.auth import router as auth_router
