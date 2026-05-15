@@ -48,9 +48,9 @@ export default function OnboardingPage() {
       const res = await apiCall('/v1/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload)
-      });
+      }, false, false); // isFormData = false, requireAuth = false
       
-      localStorage.setItem('lodge_link_token', res.access_token);
+      localStorage.setItem('ll_token', res.access_token);
       setSandboxKey(res.sandbox_key);
       setNextSteps(res.next_steps);
       setStep(3); // Go to KYC upload
@@ -70,8 +70,8 @@ export default function OnboardingPage() {
       
       await apiCall('/v1/hotels/kyc/submit', {
         method: 'POST',
-        body: formData // Note: apiCall in lib/api.ts might need adjusting for FormData, assuming standard fetch behavior
-      }, true); // isFormData = true usually, but we'll mock if api.ts doesn't support it
+        body: formData
+      }, true, true); // isFormData = true, requireAuth = true
 
       setStep(4);
     } catch (err: any) {
@@ -117,6 +117,7 @@ export default function OnboardingPage() {
                   <div>
                     <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">Phone Number</label>
                     <input disabled={step > 1} value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-500 text-slate-200" placeholder="+251911000000" />
+                    <p className="text-[10px] text-slate-500 mt-1">Must start with + and include country code</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
