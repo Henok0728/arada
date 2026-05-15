@@ -67,19 +67,19 @@
     },
     "frontend_emergency_referral_ui": {
       "description": "3-tap Emergency Referral Mode, results list, trust score display",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "abrsh-agent",
+      "branch": "phase1/frontend-ui",
+      "claimed_at": "2026-05-15T14:40:00Z",
       "released_at": null,
       "plan_ref": "Module 4 § 4.2 — Receptionist UI"
     },
     "frontend_availability_grid": {
       "description": "Visual room availability toggle grid for dashboard-tier hotels",
-      "status": "available",
-      "agent_id": null,
-      "branch": null,
-      "claimed_at": null,
+      "status": "claimed",
+      "agent_id": "abrsh-agent",
+      "branch": "phase1/frontend-ui",
+      "claimed_at": "2026-05-15T14:40:00Z",
       "released_at": null,
       "plan_ref": "Module 2 § 2.1 — Level 3 Dashboard"
     },
