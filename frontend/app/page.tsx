@@ -1,115 +1,195 @@
 'use client';
-import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import DemoBanner from '../components/DemoBanner';
+import Link from 'next/link';
 
 export default function LandingPage() {
-  const { t, i18n } = useTranslation();
   const [mounted, setMounted] = useState(false);
+  const observerRefs = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
-  const toggleLanguage = () => {
-    const nextLang = i18n.language === 'en' ? 'am' : 'en';
-    i18n.changeLanguage(nextLang);
+  const addToRefs = (el: HTMLElement | null) => {
+    if (el && !observerRefs.current.includes(el)) {
+      observerRefs.current.push(el);
+    }
   };
 
-  if (!mounted) return null; // Avoid hydration mismatch
+  if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-brand-50 flex flex-col font-sans">
-      {/* Header & Language Switcher */}
-      <header className="w-full p-4 flex justify-between items-center bg-white shadow-sm sticky top-0 z-50">
-        <div className="text-2xl font-bold text-brand-600">Lodge-Link</div>
-        <button
-          onClick={toggleLanguage}
-          className="px-4 py-2 text-sm font-medium border border-brand-500 text-brand-600 rounded-md hover:bg-brand-50 transition-colors"
-        >
-          {i18n.language === 'en' ? 'አማርኛ' : 'English'}
-        </button>
-      </header>
+    <div className="min-h-screen flex flex-col selection:bg-[#00d4aa]/30">
+      <DemoBanner />
 
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="px-6 py-16 md:py-24 max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-brand-900 leading-tight mb-6">
-            {t('hero_headline')}
+      {/* HERO SECTION */}
+      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden">
+        {/* Radial Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00d4aa]/5 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="relative z-10 text-center max-w-4xl mx-auto">
+          <h1 className="hero-letter-spacing text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-4">
+            You&apos;re Full Tonight.<br />
+            <span className="text-[#00d4aa]">Your Guest Doesn&apos;t Have to Leave.</span>
           </h1>
-          <p className="text-lg md:text-xl text-gray-700 mb-10 max-w-2xl mx-auto">
-            {t('hero_subheadline')}
+          <h2 className="amharic text-xl md:text-2xl text-white/70 mb-8 font-medium">
+            ሆቴልዎ ሞልቷል። እንግዳዎ መሄድ አያስፈልጋቸውም።
+          </h2>
+          <p className="text-lg md:text-xl text-white/60 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Lodge-Link connects Addis Ababa hotels into a real-time referral network. 
+            One tap. Trusted partners. No guest left behind.
           </p>
-          <button className="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-            {t('cta_button')}
-          </button>
           
-          <div className="mt-8 flex items-center justify-center space-x-2 text-sm font-medium text-gray-500 bg-white inline-flex px-4 py-2 rounded-full shadow-sm">
-            <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span>{t('trust_bar')}</span>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+            <button className="shimmer-btn btn-primary w-full sm:w-auto min-w-[200px]">
+              Login as Hotel A →
+            </button>
+            <button className="btn-outline w-full sm:w-auto min-w-[200px]">
+              Login as Hotel B →
+            </button>
           </div>
-        </section>
 
-        {/* Social Proof / Live Counter */}
-        <section className="bg-brand-600 text-white py-4 text-center text-sm md:text-base font-semibold">
-          {t('live_counter')}
-        </section>
-
-        {/* How It Works Section */}
-        <section className="py-16 px-6 bg-white">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-bold text-center text-brand-900 mb-12">{t('how_it_works_title')}</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="bg-brand-50 rounded-xl p-8 text-center shadow-sm hover:shadow-md transition-shadow border border-brand-100">
-                  <div className="w-16 h-16 bg-brand-500 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6 shadow-md">
-                    {step}
-                  </div>
-                  <h3 className="text-xl font-bold text-brand-900 mb-4">{t(`step_${step}_title`)}</h3>
-                  <p className="text-gray-600 leading-relaxed">{t(`step_${step}_desc`)}</p>
-                </div>
-              ))}
+          <div className="flex items-center justify-center gap-2">
+            <div className="px-3 py-1 glass-card border-white/20 text-xs font-bold text-[#00d4aa] uppercase tracking-wider">
+              ✦ 5 hotels live in Addis Ababa
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Feature Comparison */}
-        <section className="py-16 px-6 bg-gray-50">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-center text-brand-900 mb-12">{t('comparison_title')}</h2>
-            
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
-              <div className="grid grid-cols-2 bg-gray-100 p-4 font-bold text-center">
-                <div className="text-red-600">{t('before_title')}</div>
-                <div className="text-green-600">{t('after_title')}</div>
+        {/* Scroll Chevron */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-[bounce-slow_3s_infinite] opacity-50">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-24 px-6 bg-white/[0.02]">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { step: 1, icon: '🏨', title: 'Hotel A is Full', desc: 'Receptionist taps FIND ROOM in the dashboard.' },
+              { step: 2, icon: '⚡', title: 'Instant Scan', desc: 'Lodge-Link checks 5 nearby hotels in 340ms.' },
+              { step: 3, icon: '🤝', title: 'Handshake', desc: 'Guest walks to Hotel B with a 6-character code.' }
+            ].map((item, i) => (
+              <div 
+                key={item.step} 
+                ref={addToRefs}
+                className="reveal glass-card p-8 group hover:bg-white/[0.08] transition-colors"
+                style={{ transitionDelay: `${i * 150}ms` }}
+              >
+                <div className="text-4xl font-bold text-white/10 mb-4 group-hover:text-[#00d4aa]/20 transition-colors">0{item.step}</div>
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                <p className="text-white/50">{item.desc}</p>
               </div>
-              
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="grid grid-cols-2 border-b border-gray-100 last:border-b-0">
-                  <div className="p-4 md:p-6 text-center text-gray-500 flex items-center justify-center border-r border-gray-100">
-                    <span className="mr-2 text-red-500">❌</span> {t(`before_${item}`)}
-                  </div>
-                  <div className="p-4 md:p-6 text-center text-brand-900 font-medium flex items-center justify-center bg-brand-50/30">
-                    <span className="mr-2 text-green-500">✅</span> {t(`after_${item}`)}
-                  </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST SCORE STRIP */}
+      <section className="py-24 px-6 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 ref={addToRefs} className="reveal text-3xl md:text-4xl font-bold mb-16">
+            Every referral builds trust.<br />
+            <span className="text-[#00d4aa]">Trust drives the network.</span>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[
+              { label: 'Fulfillment Rate', value: '94%', color: '#00d4aa' },
+              { label: 'Price Honesty', value: '96%', color: '#3b82f6' },
+              { label: 'Guest Feedback', value: '4.8/5', color: '#ffb800' }
+            ].map((stat, i) => (
+              <div key={stat.label} ref={addToRefs} className="reveal flex flex-col items-center">
+                <div className="text-4xl font-bold mb-4">{stat.value}</div>
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-4">
+                  <div 
+                    className="h-full rounded-full transition-all duration-[1.5s] ease-out delay-500"
+                    style={{ 
+                      width: stat.label.includes('/') ? '96%' : stat.value, 
+                      backgroundColor: stat.color,
+                      transform: 'translateX(-100%)' // Initially hidden
+                    }}
+                    // Note: We'll use a CSS trick to animate this when .visible is added
+                  />
                 </div>
-              ))}
+                <div className="text-sm font-medium text-white/50 uppercase tracking-widest">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          
+          <style jsx>{`
+            .reveal.visible .h-full {
+              transform: translateX(0) !important;
+            }
+          `}</style>
+        </div>
+      </section>
+
+      {/* ETHIOPIAN CONTEXT STRIP */}
+      <section className="py-24 px-6 bg-[#00d4aa]/5">
+        <div className="max-w-4xl mx-auto">
+          <h2 ref={addToRefs} className="reveal text-center text-3xl font-bold mb-12">
+            Built for Addis. Ready for East Africa.
+          </h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              '📅 Timkat & Meskel demand alerts',
+              '📱 Offline handshake codes',
+              '💬 SMS via AfricasTalking',
+              '🌍 ETB-native · Telebirr-ready'
+            ].map((text, i) => (
+              <div 
+                key={text} 
+                ref={addToRefs}
+                className="reveal glass-card p-6 flex items-center justify-center text-center font-medium hover:-translate-y-1 transition-transform border-white/5"
+                style={{ transitionDelay: `${i * 100}ms` }}
+              >
+                {text}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="mt-auto border-t border-white/10 py-12 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div>
+            <div className="text-2xl font-bold mb-2">Lodge-Link</div>
+            <div className="amharic text-white/50 text-sm">ሆቴሎችን የሚያገናኝ ዘመናዊ ኔትወርክ</div>
+            <div className="text-white/30 text-sm mt-4 italic">
+              Phase 1 MVP — Built with FastAPI, PostgreSQL, Redis, Next.js
             </div>
           </div>
-        </section>
-
-        {/* Final CTA Section */}
-        <section className="py-20 px-6 text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-brand-900 mb-8">{t('hero_headline')}</h2>
-          <button className="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white text-lg font-bold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1">
-            {t('cta_button')}
-          </button>
-        </section>
-      </main>
-
-      <footer className="bg-white border-t border-gray-200 py-8 text-center text-gray-500 text-sm">
-        {t('footer_text')}
+          
+          <div className="flex gap-6">
+            <Link href="https://github.com/eyob2one/arada" className="text-white/40 hover:text-white transition-colors">
+              GitHub Repository
+            </Link>
+          </div>
+        </div>
       </footer>
     </div>
   );

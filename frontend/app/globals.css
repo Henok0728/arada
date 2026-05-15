@@ -1,18 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Noto+Sans+Ethiopic:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: #070b12;
+  --foreground: #ffffff;
+  --accent-teal: #00d4aa;
+  --accent-amber: #ffb800;
+  --accent-blue: #3b82f6;
+}
+
 @layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #0f172a;
+  body {
+    @apply bg-[#070b12] text-white overflow-x-hidden;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .amharic {
+    font-family: 'Noto Sans Ethiopic', sans-serif;
   }
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Noto Sans Ethiopic', sans-serif;
+@layer components {
+  .glass-card {
+    @apply bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 bg-[#00d4aa] text-[#070b12] font-bold rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden;
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border border-[#00d4aa] text-[#00d4aa] font-bold rounded-lg transition-all duration-200 hover:bg-[#00d4aa]/10 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .shimmer-btn {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer-btn::after {
+    content: '';
+    @apply absolute top-0 -left-full w-full h-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: all 0.6s;
+  }
+
+  .shimmer-btn:hover::after {
+    @apply left-full;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes draw-stroke {
+  to { stroke-dashoffset: 0; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-letter-spacing {
+  letter-spacing: 0.08em;
+  animation: letter-spacing-in 0.6s ease-out forwards;
+}
+
+@keyframes letter-spacing-in {
+  to { letter-spacing: 0; }
+}
+
+.skeleton {
+  @apply bg-white/10 animate-pulse rounded;
 }
