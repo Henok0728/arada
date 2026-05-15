@@ -52,5 +52,10 @@ class Settings(BaseSettings):
             elif self.DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in self.DATABASE_URL:
                 self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+        # Redis URL safety check
+        if not self.REDIS_URL or not any(self.REDIS_URL.startswith(s) for s in ["redis://", "rediss://", "unix://"]):
+            # Fallback for demo if REDIS_URL is malformed or empty in Railway
+            self.REDIS_URL = "redis://localhost:6379/0"
+
 
 settings = Settings()

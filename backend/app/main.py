@@ -35,7 +35,17 @@ async def force_cors_headers(request: Request, call_next):
             },
         )
     
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception as exc:
+        from fastapi.responses import JSONResponse
+        import logging
+        logging.error(f"Middleware caught unhandled exception: {exc}", exc_info=True)
+        response = JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error", "exception": str(exc)}
+        )
+    
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, ll_hotel_id"
