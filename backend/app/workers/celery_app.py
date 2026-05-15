@@ -6,8 +6,8 @@ from app.core.config import settings
 
 celery_app = Celery(
     "lodge_link_workers",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND,
     include=["app.workers.tasks", "app.workers.email_tasks"]
 )
 

@@ -17,9 +17,11 @@ class Settings(BaseSettings):
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: Optional[str] = None
+    CELERY_RESULT_BACKEND: Optional[str] = None
 
     # Security
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 1 day for demo
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     API_KEY_HASH_ALGORITHM: str = "sha256"
 
@@ -29,7 +31,6 @@ class Settings(BaseSettings):
         "https://arada-rho.vercel.app",
         "https://arada.vercel.app",
         "https://arada-faqzwaex5-eyob2ones-projects.vercel.app",
-
     ]
 
     # SMS Gateway (AfricasTalking)
@@ -58,10 +59,17 @@ class Settings(BaseSettings):
             elif self.DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in self.DATABASE_URL:
                 self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-        # Redis URL safety check
-        if not self.REDIS_URL or not any(self.REDIS_URL.startswith(s) for s in ["redis://", "rediss://", "unix://"]):
-            # Fallback for demo if REDIS_URL is malformed or empty
-            self.REDIS_URL = "redis://localhost:6379/0"
+        # Redis URL resolution for Railway/Production
+        effective_redis = self.REDIS_URL or self.CELERY_BROKER_URL
+        if not effective_redis or not any(effective_redis.startswith(s) for s in ["redis://", "rediss://", "unix://"]):
+             # Final fallback to localhost only if absolutely no environment variable is found
+             effective_redis = "redis://localhost:6379/0"
+        
+        self.REDIS_URL = effective_redis
+        if not self.CELERY_BROKER_URL:
+            self.CELERY_BROKER_URL = effective_redis
+        if not self.CELERY_RESULT_BACKEND:
+            self.CELERY_RESULT_BACKEND = effective_redis
 
 
 settings = Settings()
