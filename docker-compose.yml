@@ -1,4 +1,3 @@
-version: "3.9"
 
 # Lodge-Link Local Development Stack
 # Mirrors production topology (FastAPI + PostgreSQL + Redis + Celery)

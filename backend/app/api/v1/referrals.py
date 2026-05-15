@@ -27,6 +27,8 @@ from app.schemas.referral import (
 )
 from app.services import fanout as fanout_service
 from app.workers.tasks import demo_notify_task
+from app.schemas.handshake import HandshakeResponse
+from app.services import handshake as handshake_service
 
 router = APIRouter()
 
@@ -271,9 +273,6 @@ async def validate_referral_handshake(
     db: AsyncSession = Depends(get_db_session),
     redis: Redis = Depends(get_redis_client),
 ):
-    from app.services import handshake as handshake_service
-    from app.schemas.handshake import HandshakeResponse
-
     try:
         is_valid = await handshake_service.verify_handshake(db, redis, referral_id, code)
         if is_valid:
