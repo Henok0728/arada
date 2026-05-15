@@ -253,14 +253,18 @@ async def accept_referral(
     # -----------------------------------------------------------------------
     # Notify the sender hotel (fire-and-forget via Celery)
     # -----------------------------------------------------------------------
-    demo_notify_task.delay(
-        referral_id=str(referral.id),
-        session_id=str(referral.session_id),
-        guest_name=referral.guest_name,
-        guest_phone=referral.guest_phone,
-        destination_hotel_name="Accepting Hotel",
-        handshake_code="[ACCEPTED — code generated at generation step]",
-    )
+    try:
+        demo_notify_task.delay(
+            referral_id=str(referral.id),
+            session_id=str(referral.session_id),
+            guest_name=referral.guest_name,
+            guest_phone=referral.guest_phone,
+            destination_hotel_name="Accepting Hotel",
+            handshake_code="[ACCEPTED — code generated at generation step]",
+        )
+    except Exception as e:
+        import logging
+        logging.warning(f"Celery task dispatch failed during acceptance (Redis missing?): {e}")
 
     return AcceptResponse(
         referral_id=referral_id,
