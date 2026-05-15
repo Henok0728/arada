@@ -162,11 +162,15 @@ async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
   requireAuth = true,
+  isFormData = false
 ): Promise<T | ApiError> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
+  
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (requireAuth) {
     const token = getToken();
@@ -191,8 +195,11 @@ async function apiFetch<T>(
       try {
         const body = await res.json();
         detail = body.detail || body.message || detail;
+        if (typeof detail === 'object') {
+          detail = JSON.stringify(detail);
+        }
       } catch {}
-      return { error: detail, status: res.status };
+      return { error: String(detail), status: res.status };
     }
 
     if (res.status === 204) return {} as T;
@@ -312,3 +319,17 @@ export async function getHealth(): Promise<SystemStatus | ApiError> {
 export function isApiError(r: unknown): r is ApiError {
   return typeof r === 'object' && r !== null && 'error' in r;
 }
+
+export const apiCall = async (
+  path: string, 
+  options: RequestInit = {}, 
+  isFormData: boolean = false,
+  requireAuth: boolean = true
+) => {
+  const result = await apiFetch<any>(path, options, requireAuth, isFormData);
+  if (isApiError(result)) {
+    const errorMsg = typeof result.error === 'string' ? result.error : JSON.stringify(result.error);
+    throw new Error(errorMsg);
+  }
+  return result;
+};

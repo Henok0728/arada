@@ -147,31 +147,25 @@
       "plan_ref": "Module 8 — Phase 1 Infrastructure"
     },
     "admin_dashboard_ui": {
-      "description": "Full platform admin panel — stats, KYC queue, hotel management, plan control, API key oversight, audit log",
-      "status": "claimed",
-      "agent_id": "antigravity-admin",
+      "status": "released",
+      "agent_id": "claude-abel-desktop",
       "branch": "phase1/admin-layer",
-      "claimed_at": "2026-05-15T21:55:00Z",
-      "released_at": null,
-      "plan_ref": "Module 8 — Phase 1 Checklist"
+      "claimed_at": "2026-05-15T18:00:00Z",
+      "released_at": "2026-05-15T22:15:00Z"
     },
     "admin_backend_routes": {
-      "description": "All /v1/admin/* FastAPI routes with admin-only JWT scope, KYC approval/rejection, plan assignment, key revocation",
-      "status": "claimed",
-      "agent_id": "antigravity-admin",
+      "status": "released",
+      "agent_id": "claude-abel-desktop",
       "branch": "phase1/admin-layer",
-      "claimed_at": "2026-05-15T21:55:00Z",
-      "released_at": null,
-      "plan_ref": "Module 8 — Phase 1 Checklist"
+      "claimed_at": "2026-05-15T18:00:00Z",
+      "released_at": "2026-05-15T22:15:00Z"
     },
     "onboarding_business_layer": {
-      "description": "Complete registration → KYC submission → review → live key provisioning flow wired end-to-end, email notifications, sandbox-to-live key upgrade path",
-      "status": "claimed",
-      "agent_id": "antigravity-admin",
+      "status": "released",
+      "agent_id": "claude-abel-desktop",
       "branch": "phase1/admin-layer",
-      "claimed_at": "2026-05-15T21:55:00Z",
-      "released_at": null,
-      "plan_ref": "Module 2 § 2.3 — KYC Requirements"
+      "claimed_at": "2026-05-15T18:00:00Z",
+      "released_at": "2026-05-15T22:15:00Z"
     }
   }
 }

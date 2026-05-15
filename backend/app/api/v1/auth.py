@@ -22,6 +22,7 @@ from app.services.auth import (
     generate_api_key,
     create_token_pair,
 )
+from app.workers.email_tasks import send_welcome_email
 
 router = APIRouter()
 
@@ -65,6 +66,10 @@ async def register_hotel(
     # -----------------------------------------------------------------------
     # 1. Create Hotel (starts in SANDBOX — requires KYC for ACTIVE)
     # -----------------------------------------------------------------------
+    location_wkt = None
+    if req.latitude is not None and req.longitude is not None:
+        location_wkt = f"POINT({req.longitude} {req.latitude})"
+
     hotel = Hotel(
         name=req.hotel_name,
         slug=req.hotel_slug,
@@ -73,9 +78,8 @@ async def register_hotel(
         phone_number=req.phone_number,
         email=req.admin_email,
         country_code=req.country_code.upper(),
-        status=HotelStatus.SANDBOX,
-        latitude=req.latitude,
-        longitude=req.longitude,
+        status=HotelStatus.PENDING_KYC,
+        location=location_wkt,
     )
     hotel = await hotel_repo.create(hotel)
 
@@ -127,12 +131,26 @@ async def register_hotel(
     )
 
     # session.py commits on clean exit — no explicit commit needed.
+    
+    # Send welcome email asynchronously
+    send_welcome_email.delay(req.admin_email, req.hotel_name)
 
     return RegisterResponse(
-        hotel_id=hotel.id,
-        user_id=user.id,
-        api_key=plaintext_key,
-        api_key_prefix=key_prefix,
+        hotel={
+            "id": str(hotel.id),
+            "name": hotel.name,
+            "slug": hotel.slug,
+            "city": hotel.city,
+            "status": hotel.status.value,
+            "is_platform_admin": getattr(hotel, 'is_platform_admin', False)
+        },
+        sandbox_key=plaintext_key,
+        kyc_status=hotel.status.value,
+        next_steps=[
+            "Complete your KYC documents", 
+            "Explore the sandbox environment",
+            "Live key issued after 3-day review"
+        ],
         access_token=tokens["access_token"],
         refresh_token=tokens["refresh_token"],
     )
@@ -185,8 +203,21 @@ async def login(
         role=user.role.value,
     )
 
+    hotel = await db.get(Hotel, user.hotel_id)
+    plan_name = "Starter"
+    if hotel and getattr(hotel, 'plan_id', None):
+        from app.db.models.plan import Plan
+        plan = await db.get(Plan, hotel.plan_id)
+        if plan:
+            plan_name = plan.display_name
+
     return TokenResponse(
         access_token=tokens["access_token"],
         refresh_token=tokens["refresh_token"],
         expires_in=tokens["expires_in"],
+        hotel_id=user.hotel_id,
+        display_name=hotel.name if hotel else "Admin",
+        kyc_status=hotel.status.value if hotel else "ACTIVE",
+        is_platform_admin=getattr(hotel, 'is_platform_admin', False) if hotel else False,
+        plan_name=plan_name
     )

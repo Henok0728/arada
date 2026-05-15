@@ -19,14 +19,29 @@ except ImportError:
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/lodge_link",
-)
-# asyncpg needs postgresql:// or postgres://. Standardize for safety.
-if "postgresql+asyncpg://" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/lodge_link",
+).replace("postgresql+asyncpg://", "postgresql://")
 
 
 DEMO_HOTELS = [
+    {
+        "id": str(uuid.UUID("00000000-0000-0000-0000-000000000000")),
+        "name": "Lodge-Link Platform",
+        "slug": "lodge-link-admin",
+        "city": "Addis Ababa",
+        "address": "Bole",
+        "phone_number": "+25100000000",
+        "email": "admin@lodge-link.et",
+        "country_code": "ET",
+        "longitude": 38.0,
+        "latitude": 9.0,
+        "status": "ACTIVE",
+        "category": "PREMIUM",
+        "trust_score": 100,
+        "is_referral_eligible": False,
+        "is_platform_admin": True,
+        "plan_name": "enterprise"
+    },
     {
         "id": str(uuid.UUID("11111111-1111-1111-1111-111111111111")),
         "name": "Bole Skyline Hotel",
@@ -42,6 +57,8 @@ DEMO_HOTELS = [
         "category": "STANDARD",
         "trust_score": 87,
         "is_referral_eligible": True,
+        "is_platform_admin": False,
+        "plan_name": "growth"
     },
     {
         "id": str(uuid.UUID("22222222-2222-2222-2222-222222222222")),
@@ -106,10 +123,38 @@ DEMO_HOTELS = [
         "category": "PREMIUM",
         "trust_score": 95,
         "is_referral_eligible": True,
+        "is_platform_admin": False,
+        "plan_name": "starter"
+    },
+    {
+        "id": str(uuid.UUID("66666666-6666-6666-6666-666666666666")),
+        "name": "Lalibela Rock Hotel",
+        "slug": "lalibela-rock",
+        "city": "Lalibela",
+        "address": "Church Road",
+        "phone_number": "+251911000006",
+        "email": "lalibela@demo.lodge-link.et",
+        "country_code": "ET",
+        "longitude": 39.04,
+        "latitude": 12.03,
+        "status": "PENDING_KYC",
+        "category": "LUXURY",
+        "trust_score": 0,
+        "is_referral_eligible": False,
+        "is_platform_admin": False,
+        "plan_name": "starter"
     },
 ]
 
 DEMO_USERS = [
+    {
+        "id": str(uuid.UUID("00000000-0000-0000-0000-000000000001")),
+        "hotel_id": str(uuid.UUID("00000000-0000-0000-0000-000000000000")),
+        "email": "admin@lodge-link.et",
+        "full_name": "Platform Admin",
+        "password": "DemoLodge2025",
+        "role": "ADMIN",
+    },
     {
         "id": str(uuid.UUID("aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaaa")),
         "hotel_id": str(uuid.UUID("11111111-1111-1111-1111-111111111111")),
@@ -148,19 +193,27 @@ async def seed(conn: asyncpg.Connection) -> None:
     # This ensures we get the busy dashboard state perfectly.
     await conn.execute("DELETE FROM platform.referrals")
     
+    # Fetch plans to assign them
+    plans = await conn.fetch("SELECT id, name FROM platform.plans")
+    plan_map = {p["name"]: p["id"] for p in plans}
+    
     for h in DEMO_HOTELS:
+        point_wkt = f"SRID=4326;POINT({h['longitude']} {h['latitude']})"
+        plan_id = plan_map.get(h.get("plan_name", "starter"))
         await conn.execute(
             """
             INSERT INTO platform.hotels
                 (id, name, slug, city, address, phone_number, email, country_code,
-                 latitude, longitude, status, category, is_referral_eligible, created_at, updated_at)
+                 location, status, category, is_referral_eligible, is_platform_admin, plan_id, created_at, updated_at)
             VALUES
-                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
-            ON CONFLICT (slug) DO UPDATE SET status = 'ACTIVE'
+                ($1,$2,$3,$4,$5,$6,$7,$8,
+                 ST_GeogFromText($9),$10,$11,$12,$13,$14,$15,$16)
+            ON CONFLICT (slug) DO UPDATE SET status = EXCLUDED.status, is_platform_admin = EXCLUDED.is_platform_admin
             """,
             uuid.UUID(h["id"]), h["name"], h["slug"], h["city"], h["address"],
             h["phone_number"], h["email"], h["country_code"],
-            h["latitude"], h["longitude"], h["status"], h["category"], h["is_referral_eligible"],
+            point_wkt, h["status"], h["category"], h.get("is_referral_eligible", True),
+            h.get("is_platform_admin", False), plan_id,
             now, now,
         )
 

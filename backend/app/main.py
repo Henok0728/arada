@@ -1,96 +1,118 @@
-from fastapi import FastAPI, Request
+"""
+Lodge-Link API Entry Point
+--------------------------
+Read CLAUDE.md and docs/Lodge-Link_Implementation_Plan.md before modifying.
+Every architectural decision in this file has a documented rationale.
+"""
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+
 from app.core.config import settings
 
-# Initialize FastAPI with redirect_slashes=False to prevent header stripping
 app = FastAPI(
     title="Lodge-Link API",
+    description="B2B Hotel Referral Switch Middleware — Ethiopian Hospitality Sector",
     version="0.1.0",
-    redirect_slashes=False
+    docs_url="/api/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/api/redoc" if settings.ENVIRONMENT != "production" else None,
 )
 
-# 1. Standard CORS Middleware (FIRST)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Hard-override for hackathon demo
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
 )
 
-# 2. Manual Header Injection (The Safety Net)
-@app.middleware("http")
-async def force_cors_headers(request: Request, call_next):
-    # Handle preflight OPTIONS requests manually for reliability
-    if request.method == "OPTIONS":
-        from fastapi.responses import Response
-        return Response(
-            status_code=204,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, ll_hotel_id",
-            },
-        )
-    
-    try:
-        response = await call_next(request)
-    except Exception as exc:
-        from fastapi.responses import JSONResponse
-        import logging
-        logging.error(f"Middleware caught unhandled exception: {exc}", exc_info=True)
-        response = JSONResponse(
-            status_code=500,
-            content={"detail": "Internal Server Error", "exception": str(exc)}
-        )
-    
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, ll_hotel_id"
-    return response
-
-# Router imports
+# ---------------------------------------------------------------------------
+# Router imports — all Phase 1 routes registered here.
+# To add a new feature: create app/api/v1/<feature>.py, import here, register.
+# ---------------------------------------------------------------------------
 from app.api.v1.auth import router as auth_router
 from app.api.v1.availability import router as availability_router
 from app.api.v1.handshake import router as handshake_router
 from app.api.v1.referrals import router as referrals_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.hotels import router as hotels_router
 
-@app.get("/")
-async def root():
-    return {"message": "Lodge-Link API is running"}
 
-@app.get("/health")
+@app.get("/health", tags=["System"])
 async def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "service": "lodge-link-api", "version": "0.1.0"}
 
-# Include routers AFTER middleware
-app.include_router(auth_router, prefix="/v1/auth", tags=["Auth"])
-app.include_router(availability_router, prefix="/v1/hotels", tags=["Availability"])
-app.include_router(referrals_router, prefix="/v1/referrals", tags=["Referrals"])
-app.include_router(handshake_router, prefix="/v1/handshake", tags=["Handshake"])
-app.include_router(admin_router, prefix="/v1/admin", tags=["Admin"])
 
-@app.get("/status")
+@app.get("/status", tags=["System"])
 async def status_check():
+    """Full dependency health check — pings PostgreSQL and Redis."""
     from sqlalchemy.ext.asyncio import create_async_engine
     from redis.asyncio import Redis
-    result = {"status": "ok", "database": "unknown", "cache": "unknown"}
+
+    result = {"status": "ok", "version": "0.1.0", "database": "unknown", "cache": "unknown"}
+
+    # DB ping
     try:
-        engine = create_async_engine(settings.DATABASE_URL)
+        engine = create_async_engine(settings.DATABASE_URL, pool_pre_ping=True)
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         result["database"] = "ok"
         await engine.dispose()
     except Exception as e:
-        result["database"] = str(e)
+        result["database"] = f"error: {str(e)[:80]}"
+        result["status"] = "degraded"
+
+    # Redis ping
     try:
         redis = Redis.from_url(settings.REDIS_URL, decode_responses=True)
         await redis.ping()
         result["cache"] = "ok"
         await redis.aclose()
     except Exception as e:
-        result["cache"] = str(e)
+        result["cache"] = f"error: {str(e)[:80]}"
+        result["status"] = "degraded"
+
     return result
+
+# Auth — POST /v1/auth/register, /v1/auth/token
+app.include_router(
+    auth_router,
+    prefix="/v1/auth",
+    tags=["Authentication"],
+)
+
+# Availability — GET/POST /v1/hotels/availability
+app.include_router(
+    availability_router,
+    prefix="/v1/hotels",
+    tags=["Availability"],
+)
+
+# Hotels — POST /v1/hotels/kyc/submit
+app.include_router(
+    hotels_router,
+    prefix="/v1/hotels",
+    tags=["Hotels"],
+)
+
+# Handshake — POST /v1/handshake/generate, /v1/handshake/verify
+app.include_router(
+    handshake_router,
+    prefix="/v1/handshake",
+    tags=["Handshake"],
+)
+
+# Referral Fan-out — POST /v1/referrals, GET /v1/referrals/{session_id}
+app.include_router(
+    referrals_router,
+    prefix="/v1/referrals",
+    tags=["Referrals"],
+)
+
+# Admin Dashboard — GET /v1/admin/*
+app.include_router(
+    admin_router,
+    prefix="/v1/admin",
+    tags=["Admin"],
+)
+
