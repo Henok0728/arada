@@ -192,7 +192,10 @@ async def execute_fanout(
 
         # Cache in Redis for fast verification (TTL = 5 mins = 300 seconds)
         cache_key = f"handshake:{referral.id}"
-        await redis.setex(cache_key, REFERRAL_TTL_MINUTES * 60, hashed)
+        try:
+            await redis.setex(cache_key, REFERRAL_TTL_MINUTES * 60, hashed)
+        except Exception as e:
+            logger.warning(f"Handshake caching failed (Redis missing?): {e}")
 
     await db.flush()
 
@@ -207,15 +210,17 @@ async def execute_fanout(
             secret_key=settings.SECRET_KEY,
         )
         # Demo-safe: use demo_notify_task which logs to console
-        # In production, swap for send_sms_task targeting guest_phone
-        demo_notify_task.delay(
-            referral_id=str(referral.id),
-            session_id=str(session_id),
-            guest_name=req.guest_name,
-            guest_phone=req.guest_phone,
-            destination_hotel_name=hotel.name,
-            handshake_code=code,
-        )
+        try:
+            demo_notify_task.delay(
+                referral_id=str(referral.id),
+                session_id=str(session_id),
+                guest_name=req.guest_name,
+                guest_phone=req.guest_phone,
+                destination_hotel_name=hotel.name,
+                handshake_code=code,
+            )
+        except Exception as e:
+            logger.warning(f"Celery task dispatch failed (Redis missing?): {e}")
 
     logger.info(
         "Fanout session=%s: broadcasted to %d hotels",
