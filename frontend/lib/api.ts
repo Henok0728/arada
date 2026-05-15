@@ -9,6 +9,10 @@ if (!BASE.startsWith('http')) {
   BASE = `https://${BASE}`;
 }
 
+if (typeof window !== 'undefined') {
+  console.log('[Lodge-Link] API Base URL:', BASE);
+}
+
 // ── TypeScript Interfaces ──────────────────────────────────────────────────
 
 export interface Hotel {
