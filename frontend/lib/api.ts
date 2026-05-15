@@ -252,6 +252,13 @@ export async function getHotelAvailability(hotelId: string): Promise<HotelAvaila
 
 // ── Referrals ─────────────────────────────────────────────────────────────
 
+export async function getIncomingReferrals(): Promise<any[] | ApiError> {
+  const hotelId = typeof window !== 'undefined' ? localStorage.getItem('ll_hotel_id') : null;
+  return apiFetch<any[]>('/v1/referrals/incoming', {
+    headers: hotelId ? { 'll_hotel_id': hotelId } : {}
+  });
+}
+
 export async function createReferral(payload: FanoutRequest): Promise<FanoutResponse | ApiError> {
   return apiFetch<FanoutResponse>('/v1/referrals', {
     method: 'POST',

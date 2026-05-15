@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import QueryProvider from '../../components/QueryProvider';
+
 export default function DashboardLayout({
   children,
 }: {
@@ -10,6 +12,7 @@ export default function DashboardLayout({
   const router = useRouter();
 
   return (
+    <QueryProvider>
     <div className="min-h-screen bg-[#070b12] text-white flex flex-col">
       {/* Dashboard Nav */}
       <nav className="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-white/5 backdrop-blur-md sticky top-0 z-50">
@@ -51,5 +54,6 @@ export default function DashboardLayout({
         </svg>
       </button>
     </div>
+    </QueryProvider>
   );
 }

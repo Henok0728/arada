@@ -1,37 +1,33 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import {
   getToken, clearAuth, isApiError,
   acceptReferral, declineReferral,
-  type SessionStatus, type ReferralLeg,
+  getIncomingReferrals
 } from '../../lib/api';
 
-// Demo data for showcase — replaced by live API in production
-const DEMO_HOTEL = { name: 'Bole Skyline Hotel', trust_score: 87, city: 'Addis Ababa' };
-const DEMO_INCOMING: DemoReferral[] = [
-  {
-    id: 'ref-001', session_id: 'sess-001', from_hotel: 'Addis Heights Hotel',
-    room_type: 'DOUBLE', check_in: '2026-05-15', check_out: '2026-05-16',
-    guest_tier: 'Standard', notes: 'Quiet room preferred', quoted_rate: 850,
-    status: 'PENDING', received_at: Date.now() - 4 * 60 * 1000, ttl_minutes: 15,
-    handshake_code: null,
-  },
-  {
-    id: 'ref-002', session_id: 'sess-002', from_hotel: 'Blue Nile Lodge',
-    room_type: 'SINGLE', check_in: '2026-05-15', check_out: '2026-05-17',
-    guest_tier: 'Budget', notes: '', quoted_rate: 600,
-    status: 'PENDING', received_at: Date.now() - 12 * 60 * 1000, ttl_minutes: 15,
-    handshake_code: null,
-  },
-];
-
-interface DemoReferral {
-  id: string; session_id: string; from_hotel: string;
-  room_type: string; check_in: string; check_out: string;
-  guest_tier: string; notes: string; quoted_rate: number;
-  status: 'PENDING' | 'ACCEPTED' | 'DECLINED'; received_at: number; ttl_minutes: number;
-  handshake_code: string | null;
+function playNotificationSound() {
+  try {
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+    oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.3);
+  } catch (e) {}
 }
 
 function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -39,6 +35,7 @@ function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   useEffect(() => {
     let start = 0;
     const duration = 800;
+    if (target === 0) { setVal(0); return; }
     const step = target / (duration / 16);
     const timer = setInterval(() => {
       start += step;
@@ -50,194 +47,249 @@ function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
   return <>{val}{suffix}</>;
 }
 
-function Countdown({ receivedAt, ttlMinutes, status }: { receivedAt: number; ttlMinutes: number; status: string }) {
-  const [remaining, setRemaining] = useState(0);
-  useEffect(() => {
-    if (status !== 'PENDING') return;
-    const update = () => {
-      const elapsed = (Date.now() - receivedAt) / 1000 / 60;
-      setRemaining(Math.max(0, ttlMinutes - elapsed));
-    };
-    update();
-    const t = setInterval(update, 10000);
-    return () => clearInterval(t);
-  }, [receivedAt, ttlMinutes, status]);
-
-  if (status !== 'PENDING') return null;
-  const mins = Math.floor(remaining);
-  const color = remaining < 2 ? 'text-red-400' : remaining < 5 ? 'text-amber-400' : 'text-white/40';
-  return <span className={`text-xs font-mono ${color}`}>{mins}m remaining</span>;
-}
-
 export default function DashboardPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loaded, setLoaded] = useState(false);
-  const [referrals, setReferrals] = useState<DemoReferral[]>(DEMO_INCOMING);
-  const [outgoing] = useState<DemoReferral[]>([]);
-  const [showOutgoing, setShowOutgoing] = useState(false);
-  const refreshRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeTab, setActiveTab] = useState<'reception' | 'admin' | 'developer'>('reception');
+  const prevReferralsCountRef = useRef(0);
+  const [flashingCardId, setFlashingCardId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!getToken()) { router.push('/'); return; }
     setLoaded(true);
-    // 10-second auto-refresh
-    refreshRef.current = setInterval(() => {
-      // In production: fetch from API and merge new cards
-    }, 10000);
-    return () => { if (refreshRef.current) clearInterval(refreshRef.current); };
   }, [router]);
 
-  const handleAccept = async (ref: DemoReferral) => {
-    const res = await acceptReferral(ref.id);
-    const code = isApiError(res) ? 'HTL-' + Math.random().toString(36).substring(2, 8).toUpperCase() : 'HTL-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    setReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'ACCEPTED', handshake_code: code } : r));
-  };
+  const { data: referrals = [], isLoading } = useQuery('incoming-referrals', async () => {
+    const res = await getIncomingReferrals();
+    if (isApiError(res)) return [];
+    return res;
+  }, {
+    refetchInterval: 10000, 
+    enabled: loaded,
+    onSuccess: (data) => {
+      const pendingCount = data.filter(r => r.status === 'PENDING').length;
+      if (pendingCount > prevReferralsCountRef.current) {
+        playNotificationSound();
+        const newest = data.find(r => r.status === 'PENDING');
+        if (newest) {
+          setFlashingCardId(newest.referral_id);
+          setTimeout(() => setFlashingCardId(null), 3000);
+        }
+      }
+      prevReferralsCountRef.current = pendingCount;
+    }
+  });
 
-  const handleDecline = async (ref: DemoReferral) => {
-    await declineReferral(ref.id, 'No availability');
-    setReferrals(prev => prev.map(r => r.id === ref.id ? { ...r, status: 'DECLINED' } : r));
-  };
+  const acceptMutation = useMutation((id: string) => acceptReferral(id), {
+    onSuccess: () => queryClient.invalidateQueries('incoming-referrals')
+  });
 
-  const trustScore = DEMO_HOTEL.trust_score;
-  const trustColor = trustScore >= 85 ? '#00d4aa' : trustScore >= 70 ? '#3b82f6' : '#f59e0b';
-  const trustLabel = trustScore >= 85 ? 'Excellent' : trustScore >= 70 ? 'Good' : 'Building';
+  const declineMutation = useMutation((id: string) => declineReferral(id, 'No availability'), {
+    onSuccess: () => queryClient.invalidateQueries('incoming-referrals')
+  });
 
   if (!loaded) return null;
 
+  const hotelName = typeof window !== 'undefined' && localStorage.getItem('ll_hotel_type') === 'B' 
+    ? 'Entoto View Lodge' : 'Bole Skyline Hotel';
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-
-      {/* Topbar */}
-      <div className="flex items-start justify-between flex-wrap gap-4">
+    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold">{DEMO_HOTEL.name}</h1>
-          <p className="text-white/40 text-sm mt-1">{DEMO_HOTEL.city} · Dashboard</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-2 rounded-full border flex items-center gap-2"
-            style={{ borderColor: `${trustColor}40`, backgroundColor: `${trustColor}10` }}>
-            <span className="text-sm font-bold" style={{ color: trustColor }}>
-              Trust {trustScore} — {trustLabel}
-            </span>
+          <h1 className="text-4xl font-black tracking-tighter">{hotelName}</h1>
+          <div className="flex items-center gap-3 mt-1">
+            <span className="px-2 py-0.5 rounded bg-[#00d4aa]/20 text-[#00d4aa] text-[10px] font-black uppercase tracking-widest">Active Partner</span>
+            <span className="text-white/40 text-xs font-bold uppercase tracking-widest">Addis Ababa Cluster</span>
           </div>
+        </div>
+        <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
+          {[
+            { id: 'reception', label: 'Reception', icon: '🛎️' },
+            { id: 'admin', label: 'Admin', icon: '📊' },
+            { id: 'developer', label: 'Developer', icon: '👨‍💻' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-[#070b12] shadow-xl' : 'text-white/40 hover:text-white'}`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Tonight at a glance */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: 'Rooms Available', value: 7, suffix: '', icon: '🛏️' },
-          { label: 'Referrals Sent', value: 3, suffix: '', icon: '↗️' },
-          { label: 'Referrals Received', value: referrals.length, suffix: '', icon: '↙️' },
-        ].map(stat => (
-          <div key={stat.label} className="bg-white/[0.04] border border-white/10 rounded-2xl p-6 text-center">
-            <div className="text-3xl mb-2">{stat.icon}</div>
-            <div className="text-4xl font-bold text-[#00d4aa]">
-              <CountUp target={stat.value} suffix={stat.suffix} />
-            </div>
-            <div className="text-xs text-white/40 mt-2 uppercase tracking-widest">{stat.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Incoming Referrals */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <h2 className="text-xl font-bold">Incoming Referrals</h2>
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400" />
-          </span>
-          <span className="text-xs text-white/30">Live · refreshes every 10s</span>
-        </div>
-
-        {referrals.length === 0 ? (
-          <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-12 text-center">
-            <div className="text-4xl mb-4">📡</div>
-            <p className="text-white/50">No incoming referrals right now. Network is listening.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {referrals.map(ref => (
-              <div key={ref.id}
-                className={`bg-white/[0.04] border rounded-2xl p-6 transition-all ${
-                  ref.status === 'ACCEPTED' ? 'border-[#00d4aa]/30 bg-[#00d4aa]/5' :
-                  ref.status === 'DECLINED' ? 'border-red-500/20 opacity-50' :
-                  'border-white/10'
-                }`}>
-                <div className="flex justify-between items-start flex-wrap gap-3 mb-4">
-                  <div>
-                    <div className="font-bold text-lg">From: {ref.from_hotel}</div>
-                    <div className="text-sm text-white/50 mt-1">
-                      {ref.room_type} · {ref.check_in} → {ref.check_out} · Party: 1
-                    </div>
-                    {ref.notes && <div className="text-sm text-white/40 mt-1 italic">&quot;{ref.notes}&quot;</div>}
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-white">{ref.quoted_rate} ETB</div>
-                    <div className="text-xs text-white/30 mt-1">/{ref.room_type.toLowerCase()}/night</div>
-                    <Countdown receivedAt={ref.received_at} ttlMinutes={ref.ttl_minutes} status={ref.status} />
-                  </div>
+      {activeTab === 'reception' && (
+        <div className="space-y-8">
+          {/* Tonight's Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Available Inventory', value: 7, color: '#00d4aa' },
+              { label: 'Network Sent', value: 12, color: '#3b82f6' },
+              { label: 'Network Received', value: referrals.length, color: '#ffb800' }
+            ].map(s => (
+              <div key={s.label} className="bg-white/5 border border-white/5 rounded-3xl p-8 hover:bg-white/[0.08] transition-all">
+                <div className="text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-4">{s.label}</div>
+                <div className="text-5xl font-black tracking-tighter" style={{ color: s.color }}>
+                  <CountUp target={s.value} />
                 </div>
-
-                {ref.status === 'PENDING' && (
-                  <div className="flex gap-3 mt-4">
-                    <button onClick={() => handleAccept(ref)}
-                      className="flex-1 py-3 bg-[#00d4aa] text-[#070b12] font-bold rounded-xl hover:scale-[1.01] transition-transform">
-                      ✓ Accept
-                    </button>
-                    <button onClick={() => handleDecline(ref)}
-                      className="px-6 py-3 border border-white/20 rounded-xl font-bold text-white/60 hover:bg-white/5 transition-colors">
-                      Decline
-                    </button>
-                  </div>
-                )}
-
-                {ref.status === 'ACCEPTED' && ref.handshake_code && (
-                  <div className="mt-4 bg-[#00d4aa]/10 border border-[#00d4aa]/30 rounded-xl p-4 text-center">
-                    <div className="text-xs text-[#00d4aa] uppercase tracking-widest mb-1">Handshake Code</div>
-                    <div className="text-3xl font-mono font-bold tracking-widest">{ref.handshake_code}</div>
-                    <div className="text-xs text-white/40 mt-2">Give this code to the arriving guest</div>
-                  </div>
-                )}
-
-                {ref.status === 'DECLINED' && (
-                  <div className="mt-4 text-center text-white/30 text-sm font-medium">Referral declined</div>
-                )}
               </div>
             ))}
           </div>
-        )}
-      </div>
 
-      {/* Outgoing Referrals (collapsible) */}
-      <div>
-        <button onClick={() => setShowOutgoing(s => !s)}
-          className="flex items-center gap-3 text-white/50 hover:text-white transition-colors text-sm font-bold uppercase tracking-widest">
-          <span>{showOutgoing ? '▼' : '▶'}</span>
-          Outgoing Referrals ({outgoing.length})
-        </button>
-        {showOutgoing && (
-          <div className="mt-4 bg-white/[0.02] border border-white/5 rounded-2xl p-8 text-center text-white/30">
-            No outgoing referrals yet. Tap <span className="text-red-400 font-bold">FIND ROOM</span> to start one.
+          {/* Referrals List */}
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-2xl font-black tracking-tight">Incoming Protocol Requests</h2>
+              <div className="h-2 w-2 rounded-full bg-[#00d4aa] animate-ping" />
+            </div>
+
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1,2,3].map(i => <div key={i} className="h-40 bg-white/5 rounded-3xl animate-pulse" />)}
+              </div>
+            ) : referrals.length === 0 ? (
+              <div className="bg-white/5 border border-dashed border-white/10 rounded-[3rem] p-20 text-center">
+                <div className="text-4xl mb-6 grayscale opacity-50">📡</div>
+                <h3 className="text-xl font-bold mb-2">No active requests</h3>
+                <p className="text-white/40 text-sm max-w-xs mx-auto">The Trust Network is currently monitoring for nearby availability signals.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {referrals.map((ref: any) => (
+                  <div 
+                    key={ref.referral_id}
+                    className={`group relative overflow-hidden bg-white/5 border rounded-[2.5rem] p-8 transition-all duration-500 ${
+                      flashingCardId === ref.referral_id ? 'border-[#00d4aa] bg-[#00d4aa]/10 scale-[1.01]' : 'border-white/5 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-8">
+                      <div>
+                        <div className="text-[10px] font-black text-[#00d4aa] uppercase tracking-[0.3em] mb-2">Incoming Referral</div>
+                        <div className="text-2xl font-black tracking-tighter italic">Guest: {ref.guest_name || 'Protocol Guest'}</div>
+                        <div className="text-sm text-white/40 font-bold uppercase tracking-widest mt-2">{ref.room_type} · 1 Night · Guaranteed Trust</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-black tracking-tighter">850 <span className="text-xs text-white/30 ml-1">ETB</span></div>
+                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mt-1">Direct Settlement</div>
+                      </div>
+                    </div>
+
+                    {ref.status === 'PENDING' ? (
+                      <div className="flex gap-4">
+                        <button 
+                          onClick={() => acceptMutation.mutate(ref.referral_id)}
+                          disabled={acceptMutation.isLoading}
+                          className="flex-1 py-5 bg-white text-[#070b12] font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-105 transition-all disabled:opacity-50"
+                        >
+                          {acceptMutation.isLoading ? '...' : 'Accept Referral'}
+                        </button>
+                        <button 
+                          onClick={() => declineMutation.mutate(ref.referral_id)}
+                          disabled={declineMutation.isLoading}
+                          className="px-10 py-5 bg-white/5 border border-white/10 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all disabled:opacity-50"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    ) : (
+                      <div className={`py-4 rounded-2xl text-center text-xs font-black uppercase tracking-widest ${ref.status === 'ACCEPTED' ? 'bg-[#00d4aa]/20 text-[#00d4aa]' : 'bg-red-500/20 text-red-500'}`}>
+                        {ref.status === 'ACCEPTED' ? '✓ Handshake Active — Expecting Guest' : 'Referral Declined'}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Quick links */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-white/10">
-        {[
-          { href: '/dashboard/availability', label: 'Update Availability', icon: '🛏️' },
-          { href: '/dashboard/referral', label: 'Find Room (Emergency)', icon: '🔴' },
-          { href: '/onboarding', label: 'Hotel Settings', icon: '⚙️' },
-        ].map(link => (
-          <a key={link.href} href={link.href}
-            className="bg-white/[0.03] border border-white/10 rounded-xl p-4 flex items-center gap-3 hover:bg-white/[0.07] transition-colors">
-            <span className="text-2xl">{link.icon}</span>
-            <span className="text-sm font-medium">{link.label}</span>
-          </a>
-        ))}
-      </div>
+      {activeTab === 'admin' && (
+        <div className="space-y-8 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white/5 border border-white/5 rounded-[3rem] p-10">
+              <h3 className="text-xl font-bold mb-8">Revenue Performance</h3>
+              <div className="space-y-6">
+                {[
+                  { label: 'Referral Earnings', val: '42,500 ETB', p: '85%' },
+                  { label: 'Network Commissions', val: '8,400 ETB', p: '15%' }
+                ].map(item => (
+                  <div key={item.label}>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-bold text-white/50">{item.label}</span>
+                      <span className="text-sm font-black">{item.val}</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full bg-[#00d4aa]" style={{ width: item.p }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white/5 border border-white/5 rounded-[3rem] p-10">
+              <h3 className="text-xl font-bold mb-8">Trust Dynamics</h3>
+              <div className="flex items-center justify-center py-10">
+                <div className="relative h-40 w-40 flex items-center justify-center">
+                  <svg className="absolute inset-0 h-full w-full -rotate-90">
+                    <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="12" className="text-white/5" />
+                    <circle cx="80" cy="80" r="70" fill="none" stroke="currentColor" strokeWidth="12" strokeDasharray="440" strokeDashoffset="44" className="text-[#00d4aa]" />
+                  </svg>
+                  <div className="text-center">
+                    <div className="text-4xl font-black tracking-tighter">92</div>
+                    <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">Trust Score</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'developer' && (
+        <div className="max-w-2xl mx-auto animate-fade-in">
+          <div className="bg-white/5 border border-white/10 rounded-[3rem] p-10">
+            <div className="text-center mb-10">
+              <div className="h-16 w-16 bg-[#3b82f6]/20 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">🔑</div>
+              <h3 className="text-2xl font-black tracking-tighter">API Infrastructure</h3>
+              <p className="text-white/40 text-sm mt-2">Manage your production and sandbox keys.</p>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 block">Production Access Token</label>
+                <div className="flex gap-2">
+                  <input readOnly value="sk_live_lodge_7319x821..." className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-3 font-mono text-sm" />
+                  <button className="bg-white text-[#070b12] px-6 rounded-xl font-bold text-xs uppercase tracking-widest">Copy</button>
+                </div>
+              </div>
+              <div className="p-6 bg-[#3b82f6]/10 border border-[#3b82f6]/20 rounded-2xl">
+                <div className="flex gap-4 items-start">
+                  <div className="text-xl">ℹ️</div>
+                  <div>
+                    <div className="text-sm font-bold text-[#3b82f6]">Sandbox Mode Active</div>
+                    <p className="text-xs text-[#3b82f6]/60 mt-1 leading-relaxed">You are currently using a sandbox key. Your production access will be granted after the final KYC audit (usually 24h).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.4s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }

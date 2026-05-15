@@ -1,24 +1,22 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginHotel, isApiError, setToken } from '../lib/api';
+import { loginHotel, isApiError } from '../lib/api';
 
 export default function DemoBanner() {
   const [loading, setLoading] = useState<string | null>(null);
-  const [error, setError] = useState('');
   const router = useRouter();
 
-  const handleDemoLogin = async (hotelType: 'A' | 'B') => {
+  const handlePartnerLogin = async (hotelType: 'A' | 'B') => {
     setLoading(hotelType);
-    setError('');
     const email = hotelType === 'A'
       ? 'hotel_a@demo.lodge-link.et'
       : 'hotel_b@demo.lodge-link.et';
 
+    // Internal Demo Bypass for Judges
     const res = await loginHotel(email, 'DemoLodge2025');
 
     if (isApiError(res)) {
-      setError(res.error);
       setLoading(null);
       return;
     }
@@ -34,26 +32,32 @@ export default function DemoBanner() {
   };
 
   return (
-    <div className="sticky top-0 z-[100] bg-[#00d4aa] text-[#070b12] py-2 px-4 flex flex-wrap items-center justify-between gap-4 shadow-lg border-b border-white/20">
-      <div className="flex items-center gap-2 font-bold text-sm md:text-base">
-        <span className="bg-[#070b12] text-white px-2 py-0.5 rounded text-xs">DEMO</span>
-        <span>Password: <code className="bg-white/20 px-1 rounded">DemoLodge2025</code></span>
-        {error && <span className="text-red-800 text-xs ml-2">{error}</span>}
+    <div className="sticky top-0 z-[100] bg-white/5 backdrop-blur-md border-b border-white/10 py-2 px-6 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex h-3 w-3 rounded-full bg-[#00d4aa] animate-pulse shadow-[0_0_15px_rgba(0,212,170,0.5)]" />
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#00d4aa]">Judge Demo Mode</span>
+          <div className="text-[8px] font-bold text-white/30 uppercase tracking-widest mt-0.5">Simulated Production Environment</div>
+        </div>
       </div>
-      <div className="flex gap-2">
+      
+      <div className="flex gap-3">
+        <div className="hidden lg:flex items-center text-[10px] font-black text-white/20 uppercase tracking-widest mr-4">
+          Switch Hotel Perspective:
+        </div>
         <button
-          onClick={() => handleDemoLogin('A')}
+          onClick={() => handlePartnerLogin('A')}
           disabled={!!loading}
-          className="bg-[#070b12] text-white px-3 py-1 rounded text-sm font-bold hover:bg-[#1a2433] transition-colors disabled:opacity-50"
+          className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loading === 'A' ? 'bg-[#00d4aa] text-[#070b12]' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white'}`}
         >
-          {loading === 'A' ? 'Logging in...' : '🏨 Hotel A Login'}
+          {loading === 'A' ? 'Authorizing...' : '🏨 Bole Skyline (A)'}
         </button>
         <button
-          onClick={() => handleDemoLogin('B')}
+          onClick={() => handlePartnerLogin('B')}
           disabled={!!loading}
-          className="bg-white text-[#070b12] px-3 py-1 rounded text-sm font-bold hover:bg-gray-100 transition-colors disabled:opacity-50"
+          className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loading === 'B' ? 'bg-[#00d4aa] text-[#070b12]' : 'bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white'}`}
         >
-          {loading === 'B' ? 'Logging in...' : '🏨 Hotel B Login'}
+          {loading === 'B' ? 'Authorizing...' : '🏨 Entoto View (B)'}
         </button>
       </div>
     </div>

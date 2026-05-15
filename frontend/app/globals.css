@@ -20,6 +20,7 @@
 
   .amharic {
     font-family: 'Noto Sans Ethiopic', sans-serif;
+    font-size: 0.85em;
   }
 }
 
@@ -28,32 +29,12 @@
     @apply bg-white/5 border border-white/10 backdrop-blur-sm rounded-2xl;
   }
 
-  .btn-primary {
-    @apply px-6 py-3 bg-[#00d4aa] text-[#070b12] font-bold rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden;
+  .animate-fade-up {
+    animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .btn-outline {
-    @apply px-6 py-3 border border-[#00d4aa] text-[#00d4aa] font-bold rounded-lg transition-all duration-200 hover:bg-[#00d4aa]/10 hover:scale-[1.02] active:scale-[0.98];
-  }
-
-  .shimmer-btn {
-    @apply relative overflow-hidden;
-  }
-
-  .shimmer-btn::after {
-    content: '';
-    @apply absolute top-0 -left-full w-full h-full;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.4),
-      transparent
-    );
-    transition: all 0.6s;
-  }
-
-  .shimmer-btn:hover::after {
-    @apply left-full;
+  .animate-marquee {
+    animation: marquee 40s linear infinite;
   }
 }
 
@@ -66,6 +47,11 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
 }
 
 @keyframes bounce-slow {
@@ -86,15 +72,6 @@
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-.hero-letter-spacing {
-  letter-spacing: 0.08em;
-  animation: letter-spacing-in 0.6s ease-out forwards;
-}
-
-@keyframes letter-spacing-in {
-  to { letter-spacing: 0; }
 }
 
 .skeleton {

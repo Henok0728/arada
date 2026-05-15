@@ -54,8 +54,60 @@ class DeclineResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@router.get(
+    "/incoming",
+    response_model=list[ReferralStatusResponse],
+    summary="Get incoming pending referrals",
+    description="Returns all pending referrals directed to the authenticated hotel.",
+)
+async def get_incoming_referrals(
+    request: Request,
+    db: AsyncSession = Depends(get_db_session),
+):
+    # In a real app, we'd get the hotel_id from the auth token in request.state
+    # For this demo, we'll extract it from the 'Authorization' header or use Hotel A's ID
+    auth = request.headers.get("Authorization", "")
+    hotel_id_str = "11111111-1111-1111-1111-111111111111" # default to Hotel A
+    if auth and "ll_hotel_id" in request.headers:
+        hotel_id_str = request.headers.get("ll_hotel_id")
+        
+    try:
+        hotel_id = UUID(hotel_id_str)
+    except:
+        hotel_id = UUID("11111111-1111-1111-1111-111111111111")
+        
+    repo = ReferralRepository(db)
+    
+    # We need a custom query here since ReferralRepository might not have get_incoming
+    from sqlalchemy import select
+    from app.db.models.referral import Referral
+    
+    stmt = select(Referral).where(
+        Referral.destination_hotel_id == hotel_id,
+        Referral.status == ReferralStatus.PENDING
+    ).order_by(Referral.created_at.desc())
+    
+    result = await db.execute(stmt)
+    referrals = result.scalars().all()
+    
+    return [
+        ReferralStatusResponse(
+            referral_id=r.id,
+            session_id=r.session_id,
+            destination_hotel_id=r.destination_hotel_id,
+            status=r.status,
+            handshake_code_hint=r.handshake_code[:2] if r.handshake_code else None,
+            accepted_at=r.accepted_at,
+            completed_at=r.completed_at,
+            expired_at=r.expired_at,
+        )
+        for r in referrals
+    ]
 
 @router.post(
     "",

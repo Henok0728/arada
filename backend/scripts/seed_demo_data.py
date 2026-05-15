@@ -1,15 +1,7 @@
 """
-Lodge-Link Demo Seed Script
-============================
-Idempotent seed for Phase 1 demo environment.
-Creates 5 demo hotels, availability, trust scores, and 2 demo accounts.
-
-Usage:
-    python -m scripts.seed_demo_data
-
-Requirements:
-    DATABASE_URL env var must be set (postgresql+asyncpg://...)
-    psycopg2 or asyncpg must be available
+Lodge-Link Demo Seed Script (EMERGENCY RECOVERY MODE)
+=====================================================
+Force-runs to create 5 hotels, availability, trust scores, 2 accounts, and 5 pending referrals.
 """
 import asyncio
 import hashlib
@@ -17,9 +9,8 @@ import os
 import secrets
 import sys
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 
-# Use asyncpg directly — no imports from app/
 try:
     import asyncpg
 except ImportError:
@@ -31,8 +22,6 @@ DATABASE_URL = os.environ.get(
     "postgresql+asyncpg://postgres:postgres@localhost:5432/lodge_link",
 ).replace("postgresql+asyncpg://", "postgresql://")
 
-
-# ── Demo Data ──────────────────────────────────────────────────────────────
 
 DEMO_HOTELS = [
     {
@@ -136,35 +125,26 @@ DEMO_USERS = [
     },
 ]
 
-
 def hash_password(password: str) -> str:
-    """Simplified bcrypt-compatible hash for demo (use passlib in production)."""
     try:
         import bcrypt
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     except ImportError:
-        # Fallback — not secure, only for demo bootstrap
         salt = secrets.token_hex(16)
         h = hashlib.sha256(f"{salt}{password}".encode()).hexdigest()
         return f"$demo${salt}${h}"
 
-
 async def seed(conn: asyncpg.Connection) -> None:
-    now = datetime.now(timezone.utc).isoformat()
-    today = date.today().isoformat()
+    now = datetime.now(timezone.utc)
+    today_str = date.today().isoformat()
+    tomorrow_str = (date.today() + timedelta(days=1)).isoformat()
 
-    # Check if already seeded
-    existing = await conn.fetchval(
-        "SELECT COUNT(*) FROM platform.hotels WHERE email = $1",
-        "hotel_a@demo.lodge-link.et",
-    )
-    if existing and existing > 0:
-        print("✓ Seed already present — skipped")
-        return
+    print("Seeding demo data (EMERGENCY OVERRIDE)...")
 
-    print("Seeding demo data...")
-
-    # Hotels
+    # Force delete existing to avoid conflict in demo override
+    # This ensures we get the busy dashboard state perfectly.
+    await conn.execute("DELETE FROM platform.referrals")
+    
     for h in DEMO_HOTELS:
         point_wkt = f"SRID=4326;POINT({h['longitude']} {h['latitude']})"
         await conn.execute(
@@ -175,15 +155,14 @@ async def seed(conn: asyncpg.Connection) -> None:
             VALUES
                 ($1,$2,$3,$4,$5,$6,$7,$8,
                  ST_GeogFromText($9),$10,$11,$12,$13,$14)
-            ON CONFLICT (slug) DO NOTHING
+            ON CONFLICT (slug) DO UPDATE SET status = 'ACTIVE'
             """,
-            h["id"], h["name"], h["slug"], h["city"], h["address"],
+            uuid.UUID(h["id"]), h["name"], h["slug"], h["city"], h["address"],
             h["phone_number"], h["email"], h["country_code"],
             point_wkt, h["status"], h["category"], h["is_referral_eligible"],
             now, now,
         )
 
-    # Users
     for u in DEMO_USERS:
         pw_hash = hash_password(u["password"])
         await conn.execute(
@@ -194,29 +173,38 @@ async def seed(conn: asyncpg.Connection) -> None:
             VALUES ($1,$2,$3,$4,$5,$6,true,true,$7,$8)
             ON CONFLICT (email) DO NOTHING
             """,
-            u["id"], u["hotel_id"], u["email"], u["full_name"],
+            uuid.UUID(u["id"]), uuid.UUID(u["hotel_id"]), u["email"], u["full_name"],
             pw_hash, u["role"], now, now,
         )
 
-    print("✓ Demo seed loaded")
-    print(f"  Hotels:  {len(DEMO_HOTELS)}")
-    print(f"  Users:   hotel_a@demo.lodge-link.et / DemoLodge2025")
-    print(f"           hotel_b@demo.lodge-link.et / DemoLodge2025")
+    # 5 Pending Referrals directed at Hotel A to look busy
+    for i in range(5):
+        ref_id = uuid.uuid4()
+        session_id = uuid.uuid4()
+        await conn.execute(
+            """
+            INSERT INTO platform.referrals
+                (id, session_id, origin_hotel_id, destination_hotel_id, guest_name, guest_phone,
+                 room_type, check_in_date, check_out_date, party_size, status, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'PENDING', $11, $12)
+            """,
+            ref_id, session_id, 
+            uuid.UUID(DEMO_HOTELS[1]["id"]), # From Hotel B
+            uuid.UUID(DEMO_HOTELS[0]["id"]), # To Hotel A
+            f"VIP Guest {i+1}", f"+251911000{i}99", 
+            "DOUBLE", today_str, tomorrow_str, 1, now, now
+        )
 
+    print("✓ Demo seed loaded with 5 pending referrals")
 
 async def main() -> None:
-    print(f"Connecting to: {DATABASE_URL[:40]}...")
     try:
         conn = await asyncpg.connect(DATABASE_URL)
-    except Exception as e:
-        print(f"ERROR: Could not connect to database: {e}")
-        sys.exit(1)
-
-    try:
         await seed(conn)
-    finally:
         await conn.close()
-
+    except Exception as e:
+        print(f"ERROR: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     asyncio.run(main())

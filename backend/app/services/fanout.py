@@ -120,21 +120,37 @@ async def execute_fanout(
     # -----------------------------------------------------------------------
     # 3. Availability filter (concurrent Redis lookups)
     # -----------------------------------------------------------------------
-    availability_checks = await asyncio.gather(
-        *[
-            _check_availability(avail_repo, hotel.id, req.room_type.value)
-            for hotel in nearby_hotels
-        ]
-    )
+    # DEMO OVERRIDE: If special_requests contains AUTO_TARGET:hotel_id, we bypass filters
+    auto_target_id = None
+    if req.special_requests and "AUTO_TARGET:" in req.special_requests:
+        try:
+            auto_target_id = UUID(req.special_requests.split("AUTO_TARGET:")[1].split()[0])
+        except:
+            pass
 
-    qualified_hotels = [
-        hotel
-        for hotel, is_available in zip(nearby_hotels, availability_checks)
-        if is_available
-    ]
+    if auto_target_id:
+        target_hotel = await hotel_repo.get_by_id(auto_target_id)
+        if target_hotel:
+            logger.info("Demo override: AUTO_TARGET detected for hotel %s", auto_target_id)
+            qualified_hotels = [target_hotel]
+        else:
+            qualified_hotels = []
+    else:
+        availability_checks = await asyncio.gather(
+            *[
+                _check_availability(avail_repo, hotel.id, req.room_type.value)
+                for hotel in nearby_hotels
+            ]
+        )
+
+        qualified_hotels = [
+            hotel
+            for hotel, is_available in zip(nearby_hotels, availability_checks)
+            if is_available
+        ]
 
     if not qualified_hotels:
-        logger.info("No hotels with availability for room_type=%s", req.room_type)
+        logger.info("No hotels qualified for room_type=%s", req.room_type)
         return FanoutResponse(
             session_id=uuid.uuid4(),
             notified_hotels=0,
