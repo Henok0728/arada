@@ -40,7 +40,13 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
-        extra = "ignore"  # silently drop unknown env vars (e.g. TEST_DATABASE_URL)
+        extra = "ignore"
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        # Railway and other providers use postgres://, but SQLAlchemy asyncpg needs postgresql+asyncpg://
+        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
 
 
 settings = Settings()
