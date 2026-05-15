@@ -149,20 +149,18 @@ async def seed(conn: asyncpg.Connection) -> None:
     await conn.execute("DELETE FROM platform.referrals")
     
     for h in DEMO_HOTELS:
-        point_wkt = f"SRID=4326;POINT({h['longitude']} {h['latitude']})"
         await conn.execute(
             """
             INSERT INTO platform.hotels
                 (id, name, slug, city, address, phone_number, email, country_code,
-                 location, status, category, is_referral_eligible, created_at, updated_at)
+                 latitude, longitude, status, category, is_referral_eligible, created_at, updated_at)
             VALUES
-                ($1,$2,$3,$4,$5,$6,$7,$8,
-                 ST_GeogFromText($9),$10,$11,$12,$13,$14)
+                ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
             ON CONFLICT (slug) DO UPDATE SET status = 'ACTIVE'
             """,
             uuid.UUID(h["id"]), h["name"], h["slug"], h["city"], h["address"],
             h["phone_number"], h["email"], h["country_code"],
-            point_wkt, h["status"], h["category"], h["is_referral_eligible"],
+            h["latitude"], h["longitude"], h["status"], h["category"], h["is_referral_eligible"],
             now, now,
         )
 

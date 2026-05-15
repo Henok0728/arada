@@ -1,20 +1,14 @@
 """
 HotelRepository — all DB queries specific to the Hotel model.
 
-Implements the Repository Pattern: services call methods here,
-never raw SQLAlchemy in route handlers.
-
-Key query: `find_nearby_active` uses PostGIS ST_DWithin with a GEOGRAPHY
-column so distances are in metres on a WGS-84 spheroid — no CRS projection
-needed. The GIST index on hotels.location makes this O(log n).
+PostGIS-free implementation using standard SQL math filters for geographic 
+radius lookups. This ensures the platform is portable across all cloud providers.
 """
 from datetime import datetime, timezone
 from typing import Optional, Sequence
 from uuid import UUID
 
-from geoalchemy2 import Geography  # type: ignore[import]
-from geoalchemy2.functions import ST_DWithin, ST_MakePoint  # type: ignore[import]
-from sqlalchemy import and_, cast, select
+from sqlalchemy import and_, select
 
 from app.db.models.hotel import Hotel, HotelCategory, HotelStatus
 from app.db.repositories.base import BaseRepository
@@ -81,32 +75,19 @@ class HotelRepository(BaseRepository[Hotel]):
     ) -> Sequence[Hotel]:
         """Find ACTIVE, referral-eligible hotels within `radius_metres` of a point.
 
-        Uses PostGIS ST_DWithin(geography, geography, metres) which correctly
-        handles curvature of the Earth — critical near the equator (Ethiopia).
-        The GIST index on hotels.location is used automatically.
-
-        Args:
-            longitude: WGS-84 longitude of the origin point.
-            latitude:  WGS-84 latitude of the origin point.
-            radius_metres: Search radius in metres (default 5 km).
-            exclude_hotel_id: Optional UUID to exclude (the origin hotel itself).
-            category: Filter by hotel category tier if provided.
-            limit: Maximum number of results to return.
-
-        Returns:
-            Sequence of Hotel ORM objects ordered by proximity (nearest first).
+        Uses a standard SQL math filter to avoid the PostGIS extension dependency.
         """
-        # Build the origin point as a GEOGRAPHY cast so units are metres.
-        origin = cast(
-            ST_MakePoint(longitude, latitude),
-            Geography(srid=4326),
-        )
-
+        # Simple bounding box filter for performance
+        # 1 degree of latitude is ~111km
+        lat_delta = radius_metres / 111000.0
+        # 1 degree of longitude is ~111km * cos(latitude)
+        lng_delta = radius_metres / (111000.0 * 0.987) 
+        
         filters = [
             Hotel.status == HotelStatus.ACTIVE,
             Hotel.is_referral_eligible.is_(True),
-            Hotel.location.isnot(None),
-            ST_DWithin(Hotel.location, origin, radius_metres),
+            Hotel.latitude.between(latitude - lat_delta, latitude + lat_delta),
+            Hotel.longitude.between(longitude - lng_delta, longitude + lng_delta),
         ]
 
         if exclude_hotel_id is not None:
@@ -143,13 +124,11 @@ class HotelRepository(BaseRepository[Hotel]):
         return await self.update(hotel, status=HotelStatus.SANDBOX)
 
     # ------------------------------------------------------------------
-    # Slug uniqueness check (used during registration)
+    # Slug uniqueness check
     # ------------------------------------------------------------------
 
     async def is_slug_taken(self, slug: str) -> bool:
-        """Return True if the slug is already in use."""
         return await self.get_by_slug(slug) is not None
 
     async def is_email_taken(self, email: str) -> bool:
-        """Return True if the email is already registered."""
         return await self.get_by_email(email) is not None

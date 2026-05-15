@@ -1,18 +1,14 @@
 """
 Hotel ORM model — lives in the `platform` schema (shared across all tenants).
 
-PostGIS column: `location` is stored as GEOGRAPHY(POINT, 4326) so that
-PostGIS distance / radius functions (ST_DWithin, ST_Distance) work correctly
-with metre-based inputs on a WGS-84 spheroid — no planar projection needed.
-
-Category and Status use native PostgreSQL enums for DB-level constraint enforcement.
+Replaced PostGIS dependency with standard Float columns to ensure
+compatibility with standard cloud database environments (like Railway).
 """
 import enum
 import uuid
 from typing import TYPE_CHECKING, List, Optional
 
-from geoalchemy2 import Geography  # type: ignore[import]
-from sqlalchemy import Boolean, Enum, Integer, String, Text
+from sqlalchemy import Boolean, Enum, Integer, String, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,13 +29,7 @@ class HotelCategory(str, enum.Enum):
 
 
 class HotelStatus(str, enum.Enum):
-    """KYC lifecycle state machine.
-
-    PENDING_KYC  → SANDBOX (after document upload)
-    SANDBOX      → ACTIVE  (after KYC approval by Lodge-Link ops)
-    ACTIVE       → SUSPENDED (manual by ops for policy violations)
-    SUSPENDED    → ACTIVE (after remediation)
-    """
+    """KYC lifecycle state machine."""
     PENDING_KYC = "PENDING_KYC"
     SANDBOX = "SANDBOX"
     ACTIVE = "ACTIVE"
@@ -47,11 +37,7 @@ class HotelStatus(str, enum.Enum):
 
 
 class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
-    """Represents a lodging partner registered on the Lodge-Link platform.
-
-    Schema: `platform` — shared across all tenants.
-    Each hotel also gets a private schema `hotel_{slug}` (created separately).
-    """
+    """Represents a lodging partner registered on the Lodge-Link platform."""
 
     __tablename__ = "hotels"
     __table_args__ = {"schema": "platform"}
@@ -63,22 +49,15 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # ---- Geography ------------------------------------------------------
-    # Multi-country ready: never hardcode "ET" — read from hotel record.
     country_code: Mapped[str] = mapped_column(
         String(2), nullable=False, default="ET", comment="ISO 3166-1 alpha-2"
     )
     city: Mapped[str] = mapped_column(String(100), nullable=False)
     address: Mapped[str] = mapped_column(String(500), nullable=False)
 
-    # PostGIS GEOGRAPHY(POINT, 4326): lat/lng stored as geographic coordinates.
-    # Use ST_DWithin(location, ST_MakePoint(lng, lat)::geography, radius_metres)
-    # for geo-radius queries. Returns True/False without a full table scan
-    # when a GIST index is present (added in migration).
-    location: Mapped[Optional[object]] = mapped_column(
-        Geography(geometry_type="POINT", srid=4326),
-        nullable=True,
-        comment="PostGIS GEOGRAPHY(POINT, 4326) — WGS-84 lng/lat",
-    )
+    # Standard Floats to avoid PostGIS dependency
+    latitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True, index=True)
+    longitude: Mapped[Optional[float]] = mapped_column(Float, nullable=True, index=True)
 
     # ---- Classification -------------------------------------------------
     category: Mapped[HotelCategory] = mapped_column(
@@ -99,7 +78,7 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     kyc_approved_at: Mapped[Optional[str]] = mapped_column(
         String, nullable=True
-    )  # datetime stored as ISO string for cross-TZ safety; cast in service layer
+    )
 
     # ---- Contact --------------------------------------------------------
     phone_number: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -111,7 +90,6 @@ class Hotel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     # ---- Referral config ------------------------------------------------
     is_referral_eligible: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True,
-        comment="Whether this hotel participates in the referral network"
     )
 
     # ---- Relationships --------------------------------------------------
