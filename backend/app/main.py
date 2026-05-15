@@ -20,11 +20,16 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Hard-override for hackathon demo
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+@app.get("/")
+async def root():
+    return {"message": "Lodge-Link API is running. Visit /health for status."}
 
 # ---------------------------------------------------------------------------
 # Router imports — all Phase 1 routes registered here.

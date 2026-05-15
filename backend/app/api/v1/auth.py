@@ -65,10 +65,6 @@ async def register_hotel(
     # -----------------------------------------------------------------------
     # 1. Create Hotel (starts in SANDBOX — requires KYC for ACTIVE)
     # -----------------------------------------------------------------------
-    location_wkt = None
-    if req.latitude is not None and req.longitude is not None:
-        location_wkt = f"POINT({req.longitude} {req.latitude})"
-
     hotel = Hotel(
         name=req.hotel_name,
         slug=req.hotel_slug,
@@ -78,7 +74,8 @@ async def register_hotel(
         email=req.admin_email,
         country_code=req.country_code.upper(),
         status=HotelStatus.SANDBOX,
-        location=location_wkt,
+        latitude=req.latitude,
+        longitude=req.longitude,
     )
     hotel = await hotel_repo.create(hotel)
 
