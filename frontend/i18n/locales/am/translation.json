@@ -22,5 +22,12 @@
   "after_3": "እንግዳው እርዳታዎን ያስታውሳል",
   "before_4": "እንግዶች የት እንደሚሄዱ መረጃ የለም",
   "after_4": "የተሟላ የትንታኔ ዳሽቦርድ",
-  "footer_text": "© 2026 Lodge-Link. መብቱ በህግ የተጠበቀ ነው።"
+  "footer_text": "© 2026 Lodge-Link. መብቱ በህግ የተጠበቀ ነው።",
+  "login_title": "የአጋር መግቢያ",
+  "login_subtitle": "ወደ ሆቴል ዳሽቦርድዎ እና የታመነ አውታረ መረብዎ ይግቡ።",
+  "login_email": "የኢሜል አድራሻ",
+  "login_password": "የይለፍ ቃል",
+  "login_button": "ይግቡ",
+  "login_loading": "እያረጋገጠ ነው...",
+  "login_register_prompt": "ሆቴልዎን መመዝገብ ይፈልጋሉ?"
 }

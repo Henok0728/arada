@@ -166,6 +166,15 @@
       "branch": "phase1/admin-layer",
       "claimed_at": "2026-05-15T18:00:00Z",
       "released_at": "2026-05-15T22:15:00Z"
+    },
+    "frontend_partner_login": {
+      "description": "Partner login page for dashboard access",
+      "status": "claimed",
+      "agent_id": "antigravity-frontend",
+      "branch": "phase1/frontend-partner-login",
+      "claimed_at": "2026-05-16T11:30:00Z",
+      "released_at": null,
+      "plan_ref": "Module 4"
     }
   }
 }

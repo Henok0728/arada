@@ -53,7 +53,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-fade-up" style={{ animationDelay: '300ms' }}>
             <button 
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/login')}
               className="group relative w-full sm:w-auto bg-white text-[#070b12] font-black text-sm uppercase tracking-widest px-12 py-5 rounded-2xl transition-all hover:shadow-[0_20px_40px_rgba(255,255,255,0.1)] active:scale-95"
             >
               Partner Login

@@ -22,5 +22,12 @@
   "after_3": "Guest remembers your help",
   "before_4": "No data on where guests go",
   "after_4": "Full analytics dashboard",
-  "footer_text": "© 2026 Lodge-Link. All rights reserved."
+  "footer_text": "© 2026 Lodge-Link. All rights reserved.",
+  "login_title": "Partner Login",
+  "login_subtitle": "Access your hotel dashboard and trust network.",
+  "login_email": "Email Address",
+  "login_password": "Password",
+  "login_button": "Sign In",
+  "login_loading": "Authenticating...",
+  "login_register_prompt": "Need to register your hotel?"
 }
